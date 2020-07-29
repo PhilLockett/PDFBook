@@ -56,22 +56,34 @@
 package com.phillockett65;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.SwingWorker;
 
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PageLayout;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.util.Matrix;
 
 /**
  *
@@ -93,6 +105,7 @@ public class PDFBooklet {
 
     private PDDocument inputDoc;        // The source PDF document.
     private PDDocument outputDoc;       // The generated PDF document.
+    private final COSDictionary root;
     private PDPage page;                // Current page of "outputDoc".
     private PDPageContentStream stream; // Current stream of "outputDoc".
     private float width;                // "page" width in Points Per Inch.
@@ -125,6 +138,9 @@ public class PDFBooklet {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+
+        root = new COSDictionary();
+        root.setItem(COSName.TYPE, COSName.CATALOG);
     }
 
     /**
@@ -227,8 +243,8 @@ public class PDFBooklet {
                             last = MAX;
                         }
 
-                        BufferedImage[] imageArray = pdfToImageArray(first, last);
-                        addImagesToPdf(imageArray);
+                        PDPage[] pageArray = pdfToPDPageArray(first, last);
+                        addPDPagesToPdf(pageArray);
                         setProgress(100 * last / MAX);
                     }
                     outputDoc.save(outputPDF);
@@ -267,8 +283,8 @@ public class PDFBooklet {
                         last = MAX;
                     }
 
-                    BufferedImage[] imageArray = pdfToImageArray(first, last);
-                    addImagesToPdf(imageArray);
+                    PDPage[] pageArray = pdfToPDPageArray(first, last);
+                    addPDPagesToPdf(pageArray);
 
                     System.out.printf("Pages %d to %d\n", first + 1, last);
                 }
@@ -297,24 +313,18 @@ public class PDFBooklet {
      * @param last stop grabbing pages BEFORE reaching the last page.
      * @return a BufferedImage array containing the page images.
      */
-    private BufferedImage[] pdfToImageArray(int first, int last) {
-        ArrayList<BufferedImage> images = new ArrayList<>();
+    private PDPage[] pdfToPDPageArray(int first, int last) {
+        ArrayList<PDPage> pages = new ArrayList<>();
 
-        PDFRenderer renderer = new PDFRenderer(inputDoc);
         for (int target = first; target < last; ++target) {
-            try {
-                BufferedImage bim = renderer.renderImageWithDPI(target, DPI, IT);
-                images.add(bim);
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+            pages.add(inputDoc.getPage(target));
         }
 
         // Turn ArrayList into an array.
-        BufferedImage[] imageArray = new BufferedImage[images.size()];
-        imageArray = images.toArray(imageArray);
+        PDPage[] pageArray = new PDPage[pages.size()];
+        pageArray = pages.toArray(pageArray);
 
-        return imageArray;
+        return pageArray;
     }
 
     /**
@@ -322,14 +332,14 @@ public class PDFBooklet {
      *
      * @param images array to be added to document in booklet arrangement.
      */
-    private void addImagesToPdf(BufferedImage[] images) {
+    private void addPDPagesToPdf(PDPage[] pages) {
 
         final int LAST = 4 * sheetCount;
         int first = 0;
         int last = LAST - 1;
         for (int sheet = 0; sheet < sheetCount; ++sheet) {
-            addImagesToPage(images, first++, last--, false);
-            addImagesToPage(images, first++, last--, rotate);
+            addPDPagesToPage(pages, first++, last--, false);
+            addPDPagesToPage(pages, first++, last--, rotate);
         }
     }
 
@@ -341,37 +351,37 @@ public class PDFBooklet {
      * @param bottom index for the bottom image.
      * @param flip flag to indicate if the images should be flipped clockwise.
      */
-    private void addImagesToPage(BufferedImage[] images, int top, int bottom,
+    private void addPDPagesToPage(PDPage[] pages, int top, int bottom,
             boolean flip) {
 
-        try {
-            final int count = images.length;
-            BufferedImage image;
+            final int count = pages.length;
 
             // Draw images to current page.
-            addNewPage();
+            addNewPage(pages[0]);
             startNewStream();
             if (count > top) {
-                image = flip(images[top], flip);
-                addImageToPdf(image, true);
+                addPageToPdf(pages[top], true, flip);
             }
-            if (count > bottom) {
-                image = flip(images[bottom], flip);
-                addImageToPdf(image, false);
-            }
+//            if (count > bottom) {
+//                addPageToPdf(pages[bottom], false, flip);
+//            }
             endStream();
 
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     /**
      * Add a new page to "outputDoc".
      */
-    private void addNewPage() {
-        page = new PDPage(PS);
-        outputDoc.addPage(page);
+    private void addNewPage(PDPage imported) {
+        try {
+			page = outputDoc.importPage(imported);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+            System.out.println(e.getMessage());
+		}
+//        page = new PDPage(PS);
+//        outputDoc.addPage(page);
 
         final PDRectangle rectangle = page.getMediaBox();
         width = rectangle.getWidth();
@@ -380,6 +390,19 @@ public class PDFBooklet {
 
         // Calculate the Aspect Ratio of half the page (view port).
         VPAR = width / hHeight; // View Port Aspect Ratio.
+
+//        // only the resources of the page will be copied
+//        imported.setResources(page.getResources());
+//        imported.setRotation(page.getRotation());
+//
+//        // remove page links to avoid copying not needed resources 
+//        try {
+//            processAnnotations(imported);
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+
     }
 
     /**
@@ -387,7 +410,8 @@ public class PDFBooklet {
      */
     private void startNewStream() {
         try {
-            stream = new PDPageContentStream(outputDoc, page);
+        	stream = new PDPageContentStream(outputDoc, page, PDPageContentStream.AppendMode.PREPEND, false, false);
+//            stream = new PDPageContentStream(outputDoc, page);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -408,64 +432,144 @@ public class PDFBooklet {
      * Add a buffered image to the top or bottom of a page in a PDF document.
      * The image is scaled to fit and centered.
      *
-     * @param image to add to document.
+     * @param copyPage to add to document.
      * @param top flag to indicate top or bottom of the page
      * @throws IOException
      */
-    private void addImageToPdf(BufferedImage image, boolean top)
-            throws IOException {
+    private void addPageToPdf(PDPage copyPage, boolean top, boolean clockwise) {
 
         final float base = top ? hHeight : 0f;
 
-        // Calculate the Aspect Ratio of "image".
-        final float w = image.getWidth();
-        final float h = image.getHeight();
-        final float IAR = w / h;    // "image" Aspect Ratio.
-
-        // Calculate "scale" based on the aspect ratio of "image" and centre it.
-        float scale;
-        float dx = 0f;
-        float dy = 0f;
-        if (IAR < VPAR) {
-            scale = hHeight / h;
-            dx = (width - (w * scale)) / 2;
-        } else {
-            scale = width / w;
-            dy = (hHeight - (h * scale)) / 2;
-        }
+        // Calculate the Aspect Ratio of "page".
+//        final PDRectangle cb = copyPage.getCropBox();
+//        final float w = cb.getWidth();
+//        final float h = cb.getHeight();
+//        final float IAR = w / h;    // "image" Aspect Ratio.
+//
+//        // Calculate "scale" based on the aspect ratio of "image" and centre it.
+//        float scale;
+//        float dx = 0f;
+//        float dy = 0f;
+//        if (IAR < VPAR) {
+//            scale = hHeight / h;
+//            dx = (width - (w * scale)) / 2;
+//        } else {
+//            scale = width / w;
+//            dy = (hHeight - (h * scale)) / 2;
+//        }
 
         // Create the PDImage and draw it on the page.
-        PDImageXObject img = LosslessFactory.createFromImage(outputDoc, image);
-        stream.drawImage(img, dx, base + dy, scale * w, scale * h);
-    }
+//        PDImageXObject img = LosslessFactory.createFromImage(outputDoc, image);
+//        stream.drawImage(img, dx, base + dy, scale * w, scale * h);
 
-    /**
-     * Rotate an image 90 degrees clockwise or anti-clockwise.
-     *
-     * @param image to be rotated.
-     * @param clockwise direction flag
-     * @return the rotated image.
-     */
-    private static BufferedImage flip(BufferedImage image, boolean clockwise) {
-        final int w = image.getWidth();
-        final int h = image.getHeight();
+        final double degrees = clockwise ? 270 : 90;
+        Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
 
-        // Create transform.
-        final AffineTransform at = new AffineTransform();
-        if (clockwise) {
-            at.quadrantRotate(1);
-            at.translate(0, -h);
-        } else {
-            at.quadrantRotate(3);
-            at.translate(-w, 0);
+        PDRectangle cropBox = copyPage.getCropBox();
+    	float tx = (cropBox.getWidth()) / 2;
+    	float ty = (cropBox.getHeight()) / 2;
+
+        Rectangle rectangle = cropBox.transform(matrix).getBounds();
+        float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
+
+        try {
+			stream.transform(Matrix.getTranslateInstance(tx, ty));
+			stream.transform(matrix);
+			stream.transform(Matrix.getScaleInstance(scale, scale));
+
+	    	PDPage outputSize = new PDPage(PS);
+	        PDRectangle outputPage = outputSize.getCropBox();
+
+	        tx = (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
+	        if (!top)
+	        	tx += (outputPage.getHeight()) / (2 * scale);
+
+	    	stream.transform(Matrix.getTranslateInstance(-tx, -ty));
+
+	    	page.setMediaBox(outputSize.getMediaBox());
+	        page.setCropBox(outputSize.getCropBox());
+        } catch (IOException e) {
+			e.printStackTrace();
         }
 
-        // Draw image onto rotated.
-        final BufferedImage rotated = new BufferedImage(h, w, image.getType());
-        Graphics2D g2d = (Graphics2D) rotated.getGraphics();
-        g2d.drawImage(image, at, null);
-
-        return rotated;
     }
+
+    private static void rotate4(PDDocument document, PDPage page) throws IOException {
+//    	PDDocument document = PDDocument.load(resource);
+//    	PDPage page = document.getDocumentCatalog().getPages().get(0);
+    	PDPageContentStream cs = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.PREPEND, false, false);
+
+    	Matrix matrix = Matrix.getRotateInstance(Math.toRadians(90), 0, 0);
+    	PDRectangle cropBox = page.getCropBox();
+    	float tx = (cropBox.getWidth()) / 2;
+    	float ty = (cropBox.getHeight()) / 2;
+
+    	Rectangle rectangle = cropBox.transform(matrix).getBounds();
+    	float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
+    	System.out.printf("tx = %f  ty = %f\n", tx, ty);
+    	System.out.printf("  cropBox   w = %f h = %f\n", cropBox.getWidth(), cropBox.getHeight());
+    	System.out.printf("  rectangle w = %f h = %f   scale = %f\n", rectangle.getWidth(), rectangle.getHeight(), scale);
+
+    	PDPage outputSize = new PDPage(PDRectangle.LETTER);
+        PDRectangle letter = outputSize.getCropBox();
+//        rect.setUpperRightY(rect.getUpperRightY()/2);
+
+    	cs.transform(Matrix.getTranslateInstance(tx, ty));
+    	cs.transform(matrix);
+    	cs.transform(Matrix.getScaleInstance(scale, scale));
+    	tx = (cropBox.getHeight() - letter.getHeight()) / (2 * scale);
+    	tx += (letter.getHeight()) / (2 * scale);
+
+//    	tx += 400f;
+//    	ty = (letter.getHeight()) / 2;
+    	cs.transform(Matrix.getTranslateInstance(-tx, -ty));
+    	System.out.printf("  letter    w = %f h = %f\n", letter.getUpperRightX(), letter.getUpperRightY());
+    	System.out.printf("tx = %f  ty = %f  LowerLeft = (%f, %f)\n", tx, ty, letter.getLowerLeftX(), letter.getLowerLeftY());
+
+        page.setMediaBox(outputSize.getMediaBox());
+        page.setCropBox(outputSize.getCropBox());
+//        letter = page.getCropBox();
+    	cs.close();
+//    	System.out.printf("  letter w = %f h = %f\n", letter.getUpperRightX(), letter.getUpperRightY());
+//    	System.out.printf("tx = %f  ty = %f  LowerLeft = (%f, %f)\n", tx, ty, letter.getLowerLeftX(), letter.getLowerLeftY());
+
+    }
+
+    public void setPageLayout(PageLayout layout) {
+        layout = PageLayout.TWO_PAGE_LEFT;
+        root.setName(COSName.PAGE_LAYOUT, layout.stringValue());
+    }
+
+
+
+
+
+    /**
+     * https://stackoverflow.com/questions/37526904/page-is-cropped-in-new-document-in-pdfbox-while-copying/37529059#37529059
+     * @param imported page from source PDF document.
+     * @throws IOException
+     */
+    private void processAnnotations(PDPage imported) throws IOException {
+        List<PDAnnotation> annotations = imported.getAnnotations();
+        for (PDAnnotation annotation : annotations) {
+            if (annotation instanceof PDAnnotationLink) {
+                PDAnnotationLink link = (PDAnnotationLink)annotation;
+                PDDestination destination = link.getDestination();
+                if (destination == null && link.getAction() != null) {
+                    PDAction action = link.getAction();
+                    if (action instanceof PDActionGoTo) {
+                        destination = ((PDActionGoTo)action).getDestination();
+                    }
+                }
+                if (destination instanceof PDPageDestination) {
+                    // TODO preserve links to pages within the split result  
+                    ((PDPageDestination) destination).setPage(null);
+                }
+            }
+            // TODO preserve links to pages within the split result  
+            annotation.setPage(null);
+        }
+    }
+
 
 }
