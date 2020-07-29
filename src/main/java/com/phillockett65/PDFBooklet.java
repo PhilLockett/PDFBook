@@ -391,18 +391,6 @@ public class PDFBooklet {
         // Calculate the Aspect Ratio of half the page (view port).
         VPAR = width / hHeight; // View Port Aspect Ratio.
 
-//        // only the resources of the page will be copied
-//        imported.setResources(page.getResources());
-//        imported.setRotation(page.getRotation());
-//
-//        // remove page links to avoid copying not needed resources 
-//        try {
-//            processAnnotations(imported);
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-
     }
 
     /**
@@ -440,28 +428,6 @@ public class PDFBooklet {
 
         final float base = top ? hHeight : 0f;
 
-        // Calculate the Aspect Ratio of "page".
-//        final PDRectangle cb = copyPage.getCropBox();
-//        final float w = cb.getWidth();
-//        final float h = cb.getHeight();
-//        final float IAR = w / h;    // "image" Aspect Ratio.
-//
-//        // Calculate "scale" based on the aspect ratio of "image" and centre it.
-//        float scale;
-//        float dx = 0f;
-//        float dy = 0f;
-//        if (IAR < VPAR) {
-//            scale = hHeight / h;
-//            dx = (width - (w * scale)) / 2;
-//        } else {
-//            scale = width / w;
-//            dy = (hHeight - (h * scale)) / 2;
-//        }
-
-        // Create the PDImage and draw it on the page.
-//        PDImageXObject img = LosslessFactory.createFromImage(outputDoc, image);
-//        stream.drawImage(img, dx, base + dy, scale * w, scale * h);
-
         final double degrees = clockwise ? 270 : 90;
         Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
 
@@ -494,46 +460,6 @@ public class PDFBooklet {
 
     }
 
-    private static void rotate4(PDDocument document, PDPage page) throws IOException {
-//    	PDDocument document = PDDocument.load(resource);
-//    	PDPage page = document.getDocumentCatalog().getPages().get(0);
-    	PDPageContentStream cs = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.PREPEND, false, false);
-
-    	Matrix matrix = Matrix.getRotateInstance(Math.toRadians(90), 0, 0);
-    	PDRectangle cropBox = page.getCropBox();
-    	float tx = (cropBox.getWidth()) / 2;
-    	float ty = (cropBox.getHeight()) / 2;
-
-    	Rectangle rectangle = cropBox.transform(matrix).getBounds();
-    	float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
-    	System.out.printf("tx = %f  ty = %f\n", tx, ty);
-    	System.out.printf("  cropBox   w = %f h = %f\n", cropBox.getWidth(), cropBox.getHeight());
-    	System.out.printf("  rectangle w = %f h = %f   scale = %f\n", rectangle.getWidth(), rectangle.getHeight(), scale);
-
-    	PDPage outputSize = new PDPage(PDRectangle.LETTER);
-        PDRectangle letter = outputSize.getCropBox();
-//        rect.setUpperRightY(rect.getUpperRightY()/2);
-
-    	cs.transform(Matrix.getTranslateInstance(tx, ty));
-    	cs.transform(matrix);
-    	cs.transform(Matrix.getScaleInstance(scale, scale));
-    	tx = (cropBox.getHeight() - letter.getHeight()) / (2 * scale);
-    	tx += (letter.getHeight()) / (2 * scale);
-
-//    	tx += 400f;
-//    	ty = (letter.getHeight()) / 2;
-    	cs.transform(Matrix.getTranslateInstance(-tx, -ty));
-    	System.out.printf("  letter    w = %f h = %f\n", letter.getUpperRightX(), letter.getUpperRightY());
-    	System.out.printf("tx = %f  ty = %f  LowerLeft = (%f, %f)\n", tx, ty, letter.getLowerLeftX(), letter.getLowerLeftY());
-
-        page.setMediaBox(outputSize.getMediaBox());
-        page.setCropBox(outputSize.getCropBox());
-//        letter = page.getCropBox();
-    	cs.close();
-//    	System.out.printf("  letter w = %f h = %f\n", letter.getUpperRightX(), letter.getUpperRightY());
-//    	System.out.printf("tx = %f  ty = %f  LowerLeft = (%f, %f)\n", tx, ty, letter.getLowerLeftX(), letter.getLowerLeftY());
-
-    }
 
     public void setPageLayout(PageLayout layout) {
         layout = PageLayout.TWO_PAGE_LEFT;
@@ -541,35 +467,6 @@ public class PDFBooklet {
     }
 
 
-
-
-
-    /**
-     * https://stackoverflow.com/questions/37526904/page-is-cropped-in-new-document-in-pdfbox-while-copying/37529059#37529059
-     * @param imported page from source PDF document.
-     * @throws IOException
-     */
-    private void processAnnotations(PDPage imported) throws IOException {
-        List<PDAnnotation> annotations = imported.getAnnotations();
-        for (PDAnnotation annotation : annotations) {
-            if (annotation instanceof PDAnnotationLink) {
-                PDAnnotationLink link = (PDAnnotationLink)annotation;
-                PDDestination destination = link.getDestination();
-                if (destination == null && link.getAction() != null) {
-                    PDAction action = link.getAction();
-                    if (action instanceof PDActionGoTo) {
-                        destination = ((PDActionGoTo)action).getDestination();
-                    }
-                }
-                if (destination instanceof PDPageDestination) {
-                    // TODO preserve links to pages within the split result  
-                    ((PDPageDestination) destination).setPage(null);
-                }
-            }
-            // TODO preserve links to pages within the split result  
-            annotation.setPage(null);
-        }
-    }
 
 
 }
