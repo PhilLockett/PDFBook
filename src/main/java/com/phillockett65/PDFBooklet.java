@@ -97,9 +97,7 @@ public class PDFBooklet {
 	private final static String FILE2_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season2.pdf";
 	private final static String OUTFILE_PATH = "page.pdf";
 
-    private int DPI = 300;         // Dots Per Inch
     private PDRectangle PS = PDRectangle.LETTER;
-    private ImageType IT = ImageType.GRAY;
     private int sheetCount = 1;
     private int firstPage = 0;
     private int lastPage = 0;
@@ -168,7 +166,6 @@ public class PDFBooklet {
      * PDFBooklet attribute setters.
      */
     public void setDotsPerInch(int val) {
-        DPI = val;
     }
 
     public void setPageSize(PDRectangle size) {
@@ -176,7 +173,6 @@ public class PDFBooklet {
     }
 
     public void setImageType(ImageType type) {
-        IT = type;
     }
 
     public void setSheetCount(int count) {
@@ -345,6 +341,14 @@ public class PDFBooklet {
         }
     }
 
+    /**
+     * Add two images to a page of a PDF document.
+     *
+     * @param images array to be added to document in booklet arrangement.
+     * @param top index for the top image.
+     * @param bottom index for the bottom image.
+     * @param flip flag to indicate if the images should be flipped clockwise.
+     */
     private void addPDPagesToPage(int[] pages, int top, int bottom,
             boolean flip) {
 
@@ -392,78 +396,7 @@ public class PDFBooklet {
     }
 
 
-    /**
-     * Add two images to a page of a PDF document.
-     *
-     * @param images array to be added to document in booklet arrangement.
-     * @param top index for the top image.
-     * @param bottom index for the bottom image.
-     * @param flip flag to indicate if the images should be flipped clockwise.
-     */
-    private void addPDPagesToPage1(PDPage[] pages, int top, int bottom,
-            boolean flip) {
 
-            final int count = pages.length;
-
-            // Draw images to current page.
-            addNewPage(pages[0]);
-            startNewStream();
-            if (count > top) {
-                addPageToPdf(pages[top], true, flip);
-            }
-//            if (count > bottom) {
-//                addPageToPdf(pages[bottom], false, flip);
-//            }
-            endStream();
-
-    }
-
-    /**
-     * Add a new page to "outputDoc".
-     */
-    private void addNewPage(PDPage imported) {
-        try {
-			page = outputDoc.importPage(imported);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-            System.out.println(e.getMessage());
-		}
-//        page = new PDPage(PS);
-//        outputDoc.addPage(page);
-
-        final PDRectangle rectangle = page.getMediaBox();
-        width = rectangle.getWidth();
-        height = rectangle.getHeight();
-        hHeight = (height / 2);
-
-        // Calculate the Aspect Ratio of half the page (view port).
-        VPAR = width / hHeight; // View Port Aspect Ratio.
-
-    }
-
-    /**
-     * Start a new stream on the current page of "outputDoc".
-     */
-    private void startNewStream() {
-        try {
-        	stream = new PDPageContentStream(outputDoc, page, PDPageContentStream.AppendMode.PREPEND, false, false);
-//            stream = new PDPageContentStream(outputDoc, page);
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    /**
-     * Close the current stream of "outputDoc".
-     */
-    private void endStream() {
-        try {
-            stream.close();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
 
     /**
      * Add a buffered image to the top or bottom of a page in a PDF document.
@@ -509,62 +442,6 @@ public class PDFBooklet {
 
     }
 
-
-
-
-    private void generateSideBySidePDF() {
-        File pdf1File = new File(FILE1_PATH);
-        File pdf2File = new File(FILE2_PATH);
-        File outPdfFile = new File(OUTFILE_PATH);
-        PDDocument pdf1 = null;
-        PDDocument pdf2 = null;
-        PDDocument outPdf = null;
-        try {
-            pdf1 = PDDocument.load(pdf1File);
-            pdf2 = PDDocument.load(pdf2File);
-            outPdf = new PDDocument();
-
-            // Create output PDF frame
-            PDRectangle pdf1Frame = pdf1.getPage(0).getCropBox();
-            PDRectangle pdf2Frame = pdf2.getPage(0).getCropBox();
-            PDRectangle outPdfFrame = new PDRectangle(pdf1Frame.getWidth()+pdf2Frame.getWidth(), 
-            		Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
-
-            // Create output page with calculated frame and add it to the document
-            COSDictionary dict = new COSDictionary();
-            dict.setItem(COSName.TYPE, COSName.PAGE);
-            dict.setItem(COSName.MEDIA_BOX, outPdfFrame);
-            dict.setItem(COSName.CROP_BOX, outPdfFrame);
-            dict.setItem(COSName.ART_BOX, outPdfFrame);
-            PDPage outPdfPage = new PDPage(dict);
-            outPdf.addPage(outPdfPage);
-
-            // Source PDF pages has to be imported as form XObjects to be able to insert them
-            // at a specific point in the output page
-            LayerUtility layerUtility = new LayerUtility(outPdf);
-            PDFormXObject formPdf1 = layerUtility.importPageAsForm(pdf1, 0);
-            PDFormXObject formPdf2 = layerUtility.importPageAsForm(pdf2, 0);
-
-            // Add form objects to output page
-            AffineTransform afLeft = new AffineTransform();
-            layerUtility.appendFormAsLayer(outPdfPage, formPdf1, afLeft, "left");
-            AffineTransform afRight = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
-            layerUtility.appendFormAsLayer(outPdfPage, formPdf2, afRight, "right");
-
-            outPdf.save(outPdfFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (pdf1 != null) pdf1.close();
-                if (pdf2 != null) pdf2.close();
-                if (outPdf != null) outPdf.close();
-                System.out.println("File created in: " + OUTFILE_PATH);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 
 
