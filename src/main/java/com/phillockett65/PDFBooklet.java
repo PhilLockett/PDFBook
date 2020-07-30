@@ -68,11 +68,13 @@ import javax.swing.SwingWorker;
 
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PageLayout;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
@@ -91,6 +93,10 @@ import org.apache.pdfbox.util.Matrix;
  */
 public class PDFBooklet {
 
+	private final static String FILE1_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season1.pdf";
+	private final static String FILE2_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season2.pdf";
+	private final static String OUTFILE_PATH = "page.pdf";
+
     private int DPI = 300;         // Dots Per Inch
     private PDRectangle PS = PDRectangle.LETTER;
     private ImageType IT = ImageType.GRAY;
@@ -105,7 +111,6 @@ public class PDFBooklet {
 
     private PDDocument inputDoc;        // The source PDF document.
     private PDDocument outputDoc;       // The generated PDF document.
-    private final COSDictionary root;
     private PDPage page;                // Current page of "outputDoc".
     private PDPageContentStream stream; // Current stream of "outputDoc".
     private float width;                // "page" width in Points Per Inch.
@@ -138,9 +143,6 @@ public class PDFBooklet {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
-        root = new COSDictionary();
-        root.setItem(COSName.TYPE, COSName.CATALOG);
     }
 
     /**
@@ -149,14 +151,17 @@ public class PDFBooklet {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        if (args.length > 1) {
-            PDFBooklet booklet = new PDFBooklet(args[0], args[1]);
-            booklet.setDotsPerInch(300);
-            booklet.setPageSize(PDRectangle.LETTER);
-            booklet.setImageType(ImageType.GRAY);
-
+//        if (args.length > 1) {
+//            PDFBooklet booklet = new PDFBooklet(args[0], args[1]);
+//            booklet.setDotsPerInch(300);
+//            booklet.setPageSize(PDRectangle.LETTER);
+//            booklet.setImageType(ImageType.GRAY);
+//
+//            booklet.genBooklet();
+//        }
+            PDFBooklet booklet = new PDFBooklet(FILE1_PATH, OUTFILE_PATH);
             booklet.genBooklet();
-        }
+//            booklet.generateSideBySidePDF();
     }
 
     /*
@@ -243,7 +248,7 @@ public class PDFBooklet {
                             last = MAX;
                         }
 
-                        PDPage[] pageArray = pdfToPDPageArray(first, last);
+                        int[] pageArray = pdfToPDPageArray(first, last);
                         addPDPagesToPdf(pageArray);
                         setProgress(100 * last / MAX);
                     }
@@ -283,7 +288,7 @@ public class PDFBooklet {
                         last = MAX;
                     }
 
-                    PDPage[] pageArray = pdfToPDPageArray(first, last);
+                    int[] pageArray = pdfToPDPageArray(first, last);
                     addPDPagesToPdf(pageArray);
 
                     System.out.printf("Pages %d to %d\n", first + 1, last);
@@ -313,16 +318,13 @@ public class PDFBooklet {
      * @param last stop grabbing pages BEFORE reaching the last page.
      * @return a BufferedImage array containing the page images.
      */
-    private PDPage[] pdfToPDPageArray(int first, int last) {
-        ArrayList<PDPage> pages = new ArrayList<>();
+    private int[] pdfToPDPageArray(int first, int last) {
 
+        int i = 0;
+        int[] pageArray = new int[last-first];
         for (int target = first; target < last; ++target) {
-            pages.add(inputDoc.getPage(target));
+        	pageArray[i++] = target;
         }
-
-        // Turn ArrayList into an array.
-        PDPage[] pageArray = new PDPage[pages.size()];
-        pageArray = pages.toArray(pageArray);
 
         return pageArray;
     }
@@ -332,7 +334,7 @@ public class PDFBooklet {
      *
      * @param images array to be added to document in booklet arrangement.
      */
-    private void addPDPagesToPdf(PDPage[] pages) {
+    private void addPDPagesToPdf(int[] pages) {
 
         final int LAST = 4 * sheetCount;
         int first = 0;
@@ -343,6 +345,53 @@ public class PDFBooklet {
         }
     }
 
+    private void addPDPagesToPage(int[] pages, int top, int bottom,
+            boolean flip) {
+
+        final int count = pages.length;
+        int tpn = 0;
+        int bpn = 0;
+        if (count > top) {
+            tpn = pages[top];
+        }
+        if (count > bottom) {
+            bpn = pages[bottom];
+        }
+
+        try {
+            // Create output PDF frame
+            PDRectangle pdf1Frame = inputDoc.getPage(tpn).getCropBox();
+            PDRectangle pdf2Frame = inputDoc.getPage(bpn).getCropBox();
+
+            PDRectangle outPdfFrame = new PDRectangle(pdf1Frame.getWidth()+pdf2Frame.getWidth(), Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
+
+            // Create output page with calculated frame and add it to the document
+            COSDictionary dict = new COSDictionary();
+            dict.setItem(COSName.TYPE, COSName.PAGE);
+            dict.setItem(COSName.MEDIA_BOX, outPdfFrame);
+            dict.setItem(COSName.CROP_BOX, outPdfFrame);
+            dict.setItem(COSName.ART_BOX, outPdfFrame);
+            PDPage outPdfPage = new PDPage(dict);
+            outputDoc.addPage(outPdfPage);
+            final int pagesOutput = outputDoc.getNumberOfPages();
+
+            // Source PDF pages has to be imported as form XObjects to be able to insert them at a specific point in the output page
+            LayerUtility layerUtility = new LayerUtility(outputDoc);
+            PDFormXObject formPdf1 = layerUtility.importPageAsForm(inputDoc, tpn);
+            PDFormXObject formPdf2 = layerUtility.importPageAsForm(inputDoc, bpn);
+
+            // Add form objects to output page
+            AffineTransform afLeft = new AffineTransform();
+            layerUtility.appendFormAsLayer(outPdfPage, formPdf1, afLeft, "left" + pagesOutput);
+            AffineTransform afRight = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
+            layerUtility.appendFormAsLayer(outPdfPage, formPdf2, afRight, "right" + pagesOutput);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     /**
      * Add two images to a page of a PDF document.
      *
@@ -351,7 +400,7 @@ public class PDFBooklet {
      * @param bottom index for the bottom image.
      * @param flip flag to indicate if the images should be flipped clockwise.
      */
-    private void addPDPagesToPage(PDPage[] pages, int top, int bottom,
+    private void addPDPagesToPage1(PDPage[] pages, int top, int bottom,
             boolean flip) {
 
             final int count = pages.length;
@@ -461,10 +510,62 @@ public class PDFBooklet {
     }
 
 
-    public void setPageLayout(PageLayout layout) {
-        layout = PageLayout.TWO_PAGE_LEFT;
-        root.setName(COSName.PAGE_LAYOUT, layout.stringValue());
+
+
+    private void generateSideBySidePDF() {
+        File pdf1File = new File(FILE1_PATH);
+        File pdf2File = new File(FILE2_PATH);
+        File outPdfFile = new File(OUTFILE_PATH);
+        PDDocument pdf1 = null;
+        PDDocument pdf2 = null;
+        PDDocument outPdf = null;
+        try {
+            pdf1 = PDDocument.load(pdf1File);
+            pdf2 = PDDocument.load(pdf2File);
+            outPdf = new PDDocument();
+
+            // Create output PDF frame
+            PDRectangle pdf1Frame = pdf1.getPage(0).getCropBox();
+            PDRectangle pdf2Frame = pdf2.getPage(0).getCropBox();
+            PDRectangle outPdfFrame = new PDRectangle(pdf1Frame.getWidth()+pdf2Frame.getWidth(), 
+            		Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
+
+            // Create output page with calculated frame and add it to the document
+            COSDictionary dict = new COSDictionary();
+            dict.setItem(COSName.TYPE, COSName.PAGE);
+            dict.setItem(COSName.MEDIA_BOX, outPdfFrame);
+            dict.setItem(COSName.CROP_BOX, outPdfFrame);
+            dict.setItem(COSName.ART_BOX, outPdfFrame);
+            PDPage outPdfPage = new PDPage(dict);
+            outPdf.addPage(outPdfPage);
+
+            // Source PDF pages has to be imported as form XObjects to be able to insert them
+            // at a specific point in the output page
+            LayerUtility layerUtility = new LayerUtility(outPdf);
+            PDFormXObject formPdf1 = layerUtility.importPageAsForm(pdf1, 0);
+            PDFormXObject formPdf2 = layerUtility.importPageAsForm(pdf2, 0);
+
+            // Add form objects to output page
+            AffineTransform afLeft = new AffineTransform();
+            layerUtility.appendFormAsLayer(outPdfPage, formPdf1, afLeft, "left");
+            AffineTransform afRight = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
+            layerUtility.appendFormAsLayer(outPdfPage, formPdf2, afRight, "right");
+
+            outPdf.save(outPdfFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pdf1 != null) pdf1.close();
+                if (pdf2 != null) pdf2.close();
+                if (outPdf != null) outPdf.close();
+                System.out.println("File created in: " + OUTFILE_PATH);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
 
 
 
