@@ -1,6 +1,6 @@
 # PDFBooket
 
-A simple, crude program to generate a booklet from of a PDF.
+A simple application to generate a booklet from of a PDF.
 
 ## Overview
 
@@ -12,7 +12,7 @@ an IDE.
 
 ## Command line Usage
 
-PDFBooklet is a simple, crude program to generate a booklet from of a source 
+PDFBooklet is a simple application to generate a booklet from of a source 
 PDF document. The command line version only uses PDFBooklet.java and requires 
 2 command line parameters, the source PDF and the name of the new PDF. Example 
 usage:
@@ -72,10 +72,6 @@ terms and techniques refer to:
 
 ## Implementation Summary
 
-The implementation is crude in that the source pages are captured as images 
-which are then rotated, scaled and arranged on the pages. As a result, the 
-generated document is significantly larger and grainier.
-
 For a "Selection Size" of "1 sheet" the document is processed in groups of 4 
 pages for each sheet of paper, where each page is captured as a BufferedImage. 
 The 4th page is rotated anti-clockwise and scaled to fit on the bottom half of 
@@ -92,9 +88,8 @@ multiples of 4 and arranged in a similar, but more complex manner.
 
 This code has the following points of interest:
 
-  * PDFBooklet.java was developed as stand alone-code.
+  * PDFBooklet.java was developed as stand-alone code.
   * A user GUI was developed using NetBeans to make using PDFBooklet easier.
   * The NetBeans UserGui.form file is supplied to ease GUI design changes.
-  * The code provides functions for rotating a BufferedImage +/- 90 degrees.
   * The PDF processing can be performed in the background using a SwingWorker.
   * Using a SwingWorker enables a JProgressBar to be supported by the GUI.
