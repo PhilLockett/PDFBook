@@ -55,15 +55,10 @@
  */
 package com.phillockett65;
 
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.SwingWorker;
 
 import org.apache.pdfbox.cos.COSDictionary;
@@ -72,19 +67,9 @@ import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.PageLayout;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.util.Matrix;
 
 /**
@@ -94,7 +79,6 @@ import org.apache.pdfbox.util.Matrix;
 public class PDFBooklet {
 
 	private final static String FILE1_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season1.pdf";
-	private final static String FILE2_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season2.pdf";
 	private final static String OUTFILE_PATH = "page.pdf";
 
     private PDRectangle PS = PDRectangle.LETTER;
@@ -396,8 +380,6 @@ public class PDFBooklet {
     }
 
 
-
-
     /**
      * Add a buffered image to the top or bottom of a page in a PDF document.
      * The image is scaled to fit and centered.
@@ -441,9 +423,6 @@ public class PDFBooklet {
         }
 
     }
-
-
-
 
 
 
