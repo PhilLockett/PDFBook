@@ -1,10 +1,10 @@
-# PDFBooket
+# PDFBook
 
 A simple application to generate a booklet from of a PDF.
 
 ## Overview
 
-PDFBooklet.java can be used as a standalone file or with the GUI front end 
+PDFBook.java can be used as a standalone file or with the GUI front end 
 defined in UserGui.java. In both cases it is dependent on PDFbox. This project 
 has been set up as a Maven project which includes the GUI and uses Maven to 
 resolve the PDFbox dependency. This also means it can be built independent of 
@@ -12,30 +12,30 @@ an IDE.
 
 ## Command line Usage
 
-PDFBooklet is a simple application to generate a booklet from of a source 
-PDF document. The command line version only uses PDFBooklet.java and requires 
+PDFBook is a simple application to generate a booklet from of a source 
+PDF document. The command line version only uses PDFBook.java and requires 
 2 command line parameters, the source PDF and the name of the new PDF. Example 
 usage:
 
-    java -jar path-to-jar/PDFBooklet.jar path-to-source.pdf path-to-new.pdf
+    java -jar path-to-jar/PDFBook.jar path-to-source.pdf path-to-new.pdf
 
-The executable PDFBooklet.jar must contain pdfbox-app-2.x.x.jar.
+The executable PDFBook.jar must contain pdfbox-app-2.x.x.jar.
 
 ## GUI Usage
 
-PDFBooklet can also be used as an external java class, in which case 
-PDFBooklet.main() should be superseded. UserGui.java is an example that 
+PDFBook can also be used as an external java class, in which case 
+PDFBook.main() should be superseded. UserGui.java is an example that 
 instantiates the class, sets the user selected attributes and then executes 
 the generator in the background using a SwingWorker.
 
 Maven generates an executable jar file that contains pdfbox-app-2.x.x.jar and 
 is named:
 
-    PDFBooklet-jar-with-dependencies.jar
+    PDFBook-jar-with-dependencies.jar
 
 This can be launched from the command line in the standard way:
 
-    java -jar path-to-jar/PDFBooklet-jar-with-dependencies.jar
+    java -jar path-to-jar/PDFBook-jar-with-dependencies.jar
 
 Using the GUI, an Input PDF file can be selected and the booklet version 
 generated as a new PDF.
@@ -49,15 +49,15 @@ https://maven.apache.org/install.html should guide you through the install.
 The following commands clone and generate an executable jar file in the 
 "target" directory:
 
-    git clone https://github.com/PhilLockett/PDFBooklet.git
-	cd PDFBooklet/
+    git clone https://github.com/PhilLockett/PDFBook.git
+	cd PDFBook/
     mvn clean install
 
 This jar file can be launched from the command line:
 
-    java -jar ./target/PDFBooklet-jar-with-dependencies.jar
+    java -jar ./target/PDFBook-jar-with-dependencies.jar
 
-PDFBooklet can also be launched using a file explorer.
+PDFBook can also be launched using a file explorer.
  
 The standard "mvn clean" command will remove all generated files.
 
@@ -88,8 +88,9 @@ multiples of 4 and arranged in a similar, but more complex manner.
 
 This code has the following points of interest:
 
-  * PDFBooklet.java was developed as stand-alone code.
-  * A user GUI was developed using NetBeans to make using PDFBooklet easier.
+  * PDFBook is an improved version of PDFBooklet.
+  * PDFBook.java was developed as stand-alone code.
+  * A user GUI was developed using NetBeans to make using PDFBook easier.
   * The NetBeans UserGui.form file is supplied to ease GUI design changes.
   * The PDF processing can be performed in the background using a SwingWorker.
   * Using a SwingWorker enables a JProgressBar to be supported by the GUI.
