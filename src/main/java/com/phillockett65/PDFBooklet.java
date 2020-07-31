@@ -149,14 +149,8 @@ public class PDFBooklet {
     /*
      * PDFBooklet attribute setters.
      */
-    public void setDotsPerInch(int val) {
-    }
-
     public void setPageSize(PDRectangle size) {
         PS = size;
-    }
-
-    public void setImageType(ImageType type) {
     }
 
     public void setSheetCount(int count) {

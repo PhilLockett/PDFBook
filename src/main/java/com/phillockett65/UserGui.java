@@ -85,32 +85,14 @@ public class UserGui extends javax.swing.JFrame {
     }
 
     /**
-     * Takes the current selection from the Dots Per Inch combo box and converts
-     * it to the corresponding int value.
+     * Returns the current selection from flipReverseSidejCheckBox.
      *
-     * @return the corresponding PDRectangle value.
+     * @return the flipReverseSidejCheckBox state.
      */
-    private int getDPI() {
-        final String sel = dotsPerInchjComboBox.getSelectedItem().toString();
-        return Integer.parseInt(sel);
+    private boolean getFlipReverseSide() {
+        return flipReverseSidejCheckBox.isSelected();
     }
 
-    /**
-     * Takes the current selection from the Image Type combo box and converts it
-     * to the corresponding ImageType value.
-     *
-     * @return the corresponding PDRectangle value.
-     */
-    private ImageType getIT() {
-        switch (imageTypejComboBox.getSelectedItem().toString()) {
-            case "ARGB":    return ImageType.ARGB;
-            case "Binary":  return ImageType.BINARY;
-            case "Gray":    return ImageType.GRAY;
-            case "RGB":     return ImageType.RGB;
-        }
-
-        return ImageType.ARGB;
-    }
 
     /**
      * Takes the current selection from the Section Size combo box and converts
@@ -137,10 +119,8 @@ public class UserGui extends javax.swing.JFrame {
         browsejButton = new javax.swing.JButton();
         pageSizejLabel = new javax.swing.JLabel();
         pageSizejComboBox = new javax.swing.JComboBox<>();
-        dotsPerInchjLabel = new javax.swing.JLabel();
-        dotsPerInchjComboBox = new javax.swing.JComboBox<>();
-        imageTypejLabel = new javax.swing.JLabel();
-        imageTypejComboBox = new javax.swing.JComboBox<>();
+        flipReverseSidejLabel = new javax.swing.JLabel();
+        flipReverseSidejCheckBox = new javax.swing.JCheckBox();
         outputPDFjLabel = new javax.swing.JLabel();
         outputPDFjTextField = new javax.swing.JTextField();
         generatejButton = new javax.swing.JButton();
@@ -193,29 +173,16 @@ public class UserGui extends javax.swing.JFrame {
         getContentPane().add(pageSizejComboBox);
         pageSizejComboBox.setBounds(170, 50, 88, 23);
 
-        dotsPerInchjLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        dotsPerInchjLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        dotsPerInchjLabel.setText("Dots Per Inch:");
-        dotsPerInchjLabel.setToolTipText("Resolution of the page images.");
-        getContentPane().add(dotsPerInchjLabel);
-        dotsPerInchjLabel.setBounds(40, 90, 110, 17);
+        flipReverseSidejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        flipReverseSidejLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        flipReverseSidejLabel.setText("Flip Reverse Side:");
+        flipReverseSidejLabel.setToolTipText("Resolution of the page images.");
+        getContentPane().add(flipReverseSidejLabel);
+        flipReverseSidejLabel.setBounds(40, 90, 110, 17);
 
-        dotsPerInchjComboBox.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        dotsPerInchjComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "300", "600", "1200", "2400" }));
-        getContentPane().add(dotsPerInchjComboBox);
-        dotsPerInchjComboBox.setBounds(170, 90, 88, 23);
-
-        imageTypejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        imageTypejLabel.setText("Image Type:");
-        imageTypejLabel.setToolTipText("Image Type of captured page.");
-        getContentPane().add(imageTypejLabel);
-        imageTypejLabel.setBounds(70, 130, 78, 17);
-
-        imageTypejComboBox.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        imageTypejComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ARGB", "Binary", "Gray", "RGB" }));
-        imageTypejComboBox.setSelectedIndex(2);
-        getContentPane().add(imageTypejComboBox);
-        imageTypejComboBox.setBounds(170, 130, 88, 23);
+        flipReverseSidejCheckBox.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        getContentPane().add(flipReverseSidejCheckBox);
+        flipReverseSidejCheckBox.setBounds(170, 90, 21, 21);
 
         outputPDFjLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         outputPDFjLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -239,13 +206,13 @@ public class UserGui extends javax.swing.JFrame {
             }
         });
         getContentPane().add(generatejButton);
-        generatejButton.setBounds(520, 170, 103, 31);
+        generatejButton.setBounds(520, 140, 103, 31);
 
         sectionSizejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         sectionSizejLabel.setText("Section Size:");
         sectionSizejLabel.setToolTipText("Number of sheets of paper per section.");
         getContentPane().add(sectionSizejLabel);
-        sectionSizejLabel.setBounds(70, 170, 78, 17);
+        sectionSizejLabel.setBounds(70, 130, 78, 17);
 
         sectionSizejComboBox.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         sectionSizejComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1 sheet", "2 sheets", "3 sheets", "4 sheets", "5 sheets", "6 sheets" }));
@@ -255,17 +222,17 @@ public class UserGui extends javax.swing.JFrame {
             }
         });
         getContentPane().add(sectionSizejComboBox);
-        sectionSizejComboBox.setBounds(170, 170, 88, 23);
+        sectionSizejComboBox.setBounds(170, 130, 88, 23);
 
         pagesjLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         pagesjLabel.setText("(4 pages)");
         getContentPane().add(pagesjLabel);
-        pagesjLabel.setBounds(280, 170, 84, 17);
+        pagesjLabel.setBounds(280, 130, 84, 17);
 
         generatejProgressBar.setOpaque(true);
         generatejProgressBar.setStringPainted(true);
         getContentPane().add(generatejProgressBar);
-        generatejProgressBar.setBounds(340, 130, 280, 20);
+        generatejProgressBar.setBounds(350, 90, 280, 20);
 
         outputjLabel.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         getContentPane().add(outputjLabel);
@@ -294,8 +261,7 @@ public class UserGui extends javax.swing.JFrame {
         booklet = new PDFBooklet(sourcePDF, outputPDF);
 
         booklet.setPageSize(getPS());
-        booklet.setDotsPerInch(getDPI());
-        booklet.setImageType(getIT());
+        booklet.setRotate(getFlipReverseSide());
         booklet.setSheetCount(getSheetCount());
 
         generatejButton.setEnabled(false);
@@ -425,12 +391,10 @@ public class UserGui extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel backgroundjLabel;
     private javax.swing.JButton browsejButton;
-    private javax.swing.JComboBox<String> dotsPerInchjComboBox;
-    private javax.swing.JLabel dotsPerInchjLabel;
+    private javax.swing.JCheckBox flipReverseSidejCheckBox;
+    private javax.swing.JLabel flipReverseSidejLabel;
     private javax.swing.JButton generatejButton;
     private javax.swing.JProgressBar generatejProgressBar;
-    private javax.swing.JComboBox<String> imageTypejComboBox;
-    private javax.swing.JLabel imageTypejLabel;
     private javax.swing.JLabel outputPDFjLabel;
     private javax.swing.JTextField outputPDFjTextField;
     private javax.swing.JLabel outputjLabel;
