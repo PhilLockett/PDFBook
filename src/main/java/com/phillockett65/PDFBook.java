@@ -72,9 +72,6 @@ import org.apache.pdfbox.util.Matrix;
  */
 public class PDFBook {
 
-	private final static String FILE1_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season1.pdf";
-	private final static String OUTFILE_PATH = "page.pdf";
-
     private PDRectangle PS = PDRectangle.LETTER;
     private int sheetCount = 1;
     private int firstPage = 0;
@@ -127,17 +124,13 @@ public class PDFBook {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-//        if (args.length > 1) {
-//            PDFBook booklet = new PDFBook(args[0], args[1]);
-//            booklet.setDotsPerInch(300);
-//            booklet.setPageSize(PDRectangle.LETTER);
-//            booklet.setImageType(ImageType.GRAY);
-//
-//            booklet.genBooklet();
-//        }
-            PDFBook booklet = new PDFBook(FILE1_PATH, OUTFILE_PATH);
+        if (args.length > 1) {
+            PDFBook booklet = new PDFBook(args[0], args[1]);
+            booklet.setPageSize(PDRectangle.LETTER);
+            booklet.setRotate(true);
+
             booklet.genBooklet();
-//            booklet.generateSideBySidePDF();
+        }
     }
 
     /*
