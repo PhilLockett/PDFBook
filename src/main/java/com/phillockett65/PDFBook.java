@@ -284,7 +284,7 @@ public class PDFBook {
         int i = 0;
         int[] pageArray = new int[last-first];
         for (int target = first; target < last; ++target) {
-        	pageArray[i++] = target;
+            pageArray[i++] = target;
         }
 
         return pageArray;
@@ -332,7 +332,9 @@ public class PDFBook {
             PDRectangle pdf1Frame = inputDoc.getPage(tpn).getCropBox();
             PDRectangle pdf2Frame = inputDoc.getPage(bpn).getCropBox();
 
-            PDRectangle outPdfFrame = new PDRectangle(pdf1Frame.getWidth()+pdf2Frame.getWidth(), Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
+            PDRectangle outPdfFrame = new PDRectangle(pdf1Frame.getWidth() +
+                    pdf2Frame.getWidth(),
+                    Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
 
             // Create output page with calculated frame and add it to the document
             COSDictionary dict = new COSDictionary();
@@ -377,30 +379,30 @@ public class PDFBook {
         Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
 
         PDRectangle cropBox = copyPage.getCropBox();
-    	float tx = (cropBox.getWidth()) / 2;
-    	float ty = (cropBox.getHeight()) / 2;
+        float tx = (cropBox.getWidth()) / 2;
+        float ty = (cropBox.getHeight()) / 2;
 
         Rectangle rectangle = cropBox.transform(matrix).getBounds();
         float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
 
         try {
-			stream.transform(Matrix.getTranslateInstance(tx, ty));
-			stream.transform(matrix);
-			stream.transform(Matrix.getScaleInstance(scale, scale));
+            stream.transform(Matrix.getTranslateInstance(tx, ty));
+            stream.transform(matrix);
+            stream.transform(Matrix.getScaleInstance(scale, scale));
 
-	    	PDPage outputSize = new PDPage(PS);
-	        PDRectangle outputPage = outputSize.getCropBox();
+            PDPage outputSize = new PDPage(PS);
+            PDRectangle outputPage = outputSize.getCropBox();
 
-	        tx = (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
-	        if (!top)
-	        	tx += (outputPage.getHeight()) / (2 * scale);
+            tx = (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
+            if (!top)
+                tx += (outputPage.getHeight()) / (2 * scale);
 
-	    	stream.transform(Matrix.getTranslateInstance(-tx, -ty));
+            stream.transform(Matrix.getTranslateInstance(-tx, -ty));
 
-	    	page.setMediaBox(outputSize.getMediaBox());
-	        page.setCropBox(outputSize.getCropBox());
+            page.setMediaBox(outputSize.getMediaBox());
+            page.setCropBox(outputSize.getCropBox());
         } catch (IOException e) {
-			e.printStackTrace();
+            e.printStackTrace();
         }
 
     }
