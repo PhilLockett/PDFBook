@@ -1,48 +1,43 @@
-/*  PDFBooklet - a simple, crude program to generate a booklet from of a PDF.
+/*  PDFBook - a simple application to generate a booklet from of a PDF.
  *
  *  Copyright 2020 Philip Lockett.
  *
- *  This file is part of PDFBooklet.
+ *  This file is part of PDFBook.
  *
- *  PDFBooklet is free software: you can redistribute it and/or modify
+ *  PDFBook is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  PDFBooklet is distributed in the hope that it will be useful,
+ *  PDFBook is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CardGen.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with PDFBook.  If not, see <https://www.gnu.org/licenses/>.
  */
 
  /*
- * As a standalone file, PDFBooklet is a simple, crude program to generate a
- * booklet from of a source PDF document. It requires 2 parameters, the source
- * PDF and the name of the new PDF. However, it can be used as a java class, in
- * which case PDFBooklet.main() should be superseded.
+ * As a standalone file, PDFBook is a simple application to generate a booklet
+ * from of a source PDF document. It requires 2 parameters, the source PDF and
+ * the name of the new PDF. However, it can be used as a java class, in which
+ * case PDFBook.main() should be superseded.
  *
  * Example usage:
- *  java -jar path-to-PDFBooklet.jar path-to-source.pdf path-to-new.pdf
+ *  java -jar path-to-PDFBook.jar path-to-source.pdf path-to-new.pdf
  *
  * Dependencies:
  *  PDFbox (pdfbox-app-2.0.19.jar)
  *  https://pdfbox.apache.org/download.cgi
  *
- * Currently this code only supports a single sheet bifolium. In other words, a
- * single sheet containing 4 pages, 2 on each side. In this way, when the sheet
- * is folded in half a booklet is formed. For more information, see:
+ * This code supports multi-sheet sections. For more information on bookbinding
+ * terms and techniques refer to:
  *  https://en.wikipedia.org/wiki/Bookbinding#Terms_and_techniques
  *  https://www.formaxprinting.com/blog/2016/11/
  *      booklet-layout-how-to-arrange-the-pages-of-a-saddle-stitched-booklet/
  *  https://www.studentbookbinding.co.uk/blog/
  *      how-to-set-up-pagination-section-sewn-bindings
- *
- * The implementation is crude in that the source pages are captured as images
- * which are then rotated, scaled and arranged on the pages. As a result, the
- * generated document is significantly larger and grainier.
  *
  * The document is processed in groups of 4 pages for each sheet of paper, where
  * each page is captured as a BufferedImage. The 4th page is rotated anti-
@@ -76,7 +71,7 @@ import org.apache.pdfbox.util.Matrix;
  *
  * @author Phil
  */
-public class PDFBooklet {
+public class PDFBook {
 
 	private final static String FILE1_PATH = "C:\\Users\\User\\Work\\RedDwarf\\Book2\\Season1.pdf";
 	private final static String OUTFILE_PATH = "page.pdf";
@@ -109,7 +104,7 @@ public class PDFBooklet {
      * @param inPDF file path for source PDF.
      * @param outPDF file path for generated PDF.
      */
-    public PDFBooklet(String inPDF, String outPDF) {
+    public PDFBook(String inPDF, String outPDF) {
         sourcePDF = inPDF;
         outputPDF = outPDF;
 
@@ -134,20 +129,20 @@ public class PDFBooklet {
      */
     public static void main(String[] args) throws IOException {
 //        if (args.length > 1) {
-//            PDFBooklet booklet = new PDFBooklet(args[0], args[1]);
+//            PDFBook booklet = new PDFBook(args[0], args[1]);
 //            booklet.setDotsPerInch(300);
 //            booklet.setPageSize(PDRectangle.LETTER);
 //            booklet.setImageType(ImageType.GRAY);
 //
 //            booklet.genBooklet();
 //        }
-            PDFBooklet booklet = new PDFBooklet(FILE1_PATH, OUTFILE_PATH);
+            PDFBook booklet = new PDFBook(FILE1_PATH, OUTFILE_PATH);
             booklet.genBooklet();
 //            booklet.generateSideBySidePDF();
     }
 
     /*
-     * PDFBooklet attribute setters.
+     * PDFBook attribute setters.
      */
     public void setPageSize(PDRectangle size) {
         PS = size;

@@ -1,30 +1,30 @@
-/*  PDFBooklet - a simple, crude program to generate a booklet from of a PDF.
+/*  PDFBook - a simple application to generate a booklet from of a PDF.
  *
  *  Copyright 2020 Philip Lockett.
  *
- *  This file is part of PDFBooklet.
+ *  This file is part of PDFBook.
  *
- *  PDFBooklet is free software: you can redistribute it and/or modify
+ *  PDFBook is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  PDFBooklet is distributed in the hope that it will be useful,
+ *  PDFBook is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CardGen.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with PDFBook.  If not, see <https://www.gnu.org/licenses/>.
  */
 
  /*
- * This code provides a simple GUI front-end to the PDFBooklet class and can be
+ * This code provides a simple GUI front-end to the PDFBook class and can be
  * used to generate a booklet from of a source PDF document. 
  * 
  * Remember to set the runnable main to UserGui.main().
  * 
- * This code is dependent on PDFBooklet.java, which itself is dependent on
+ * This code is dependent on PDFBook.java, which itself is dependent on
  * PDFbox (pdfbox-app-2.0.19.jar).
  */
 package com.phillockett65;
@@ -49,7 +49,7 @@ public class UserGui extends javax.swing.JFrame {
      *
      */
     private static final long serialVersionUID = 1L;
-    private PDFBooklet booklet;
+    private PDFBook booklet;
     private String baseDirectory;
     private String sourcePDF;     // The source PDF filepath.
     private String outputPDF;     // The generated PDF filepath.
@@ -258,7 +258,7 @@ public class UserGui extends javax.swing.JFrame {
         outputPDF = baseDirectory + "\\" + outputPDFjTextField.getText()
                 + ".pdf";
 
-        booklet = new PDFBooklet(sourcePDF, outputPDF);
+        booklet = new PDFBook(sourcePDF, outputPDF);
 
         booklet.setPageSize(getPS());
         booklet.setRotate(getFlipReverseSide());
@@ -267,9 +267,9 @@ public class UserGui extends javax.swing.JFrame {
         generatejButton.setEnabled(false);
         outputjLabel.setText("");
 
-        // Use PDFBooklet.ProgressWorker to generate PDF in the background and
+        // Use PDFBook.ProgressWorker to generate PDF in the background and
         // update the progress bar as we go.
-        PDFBooklet.ProgressWorker pw = booklet.new ProgressWorker();
+        PDFBook.ProgressWorker pw = booklet.new ProgressWorker();
         pw.addPropertyChangeListener(new PropertyChangeListener() {
 
             @Override
