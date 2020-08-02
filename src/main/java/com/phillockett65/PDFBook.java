@@ -394,15 +394,6 @@ public class PDFBook {
         PDPage outputSize = new PDPage(PS);
         PDPageContentStream stream; // Current stream of "outputDoc".
 
-//        final PDRectangle rect = outputSize.getMediaBox();
-//        final float width = rect.getWidth();
-//        final float height = rect.getHeight();
-//        final float hHeight = (height / 2);
-
-//        outputDoc.addPage(newPage);
-
-//        final float base = top ? hHeight : 0f;
-
         final double degrees = clockwise ? 270 : 90;
         Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
 
@@ -414,8 +405,7 @@ public class PDFBook {
         float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
 
         try {
-//            stream = new PDPageContentStream(outputDoc, copyPage);
-        	stream = new PDPageContentStream(outputDoc, copyPage, PDPageContentStream.AppendMode.PREPEND, false, false);
+            stream = new PDPageContentStream(outputDoc, copyPage, PDPageContentStream.AppendMode.PREPEND, false, false);
 
             stream.transform(Matrix.getTranslateInstance(tx, ty));
             stream.transform(matrix);
