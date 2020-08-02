@@ -85,13 +85,7 @@ public class PDFBook {
     private PDDocument inputDoc;        // The source PDF document.
     private PDDocument outputDoc;       // The generated PDF document.
     private PDPage page;                // Current page of "outputDoc".
-    private PDPageContentStream stream; // Current stream of "outputDoc".
-    private float width;                // "page" width in Points Per Inch.
-    private float height;               // "page" height in Points Per Inch.
-    private float hHeight;              // Half height.
 
-    // Calculate the Aspect Ratio of half the page (view port).
-    private float VPAR;                 // View Port Aspect Ratio.
 
 
     /**
@@ -209,8 +203,7 @@ public class PDFBook {
                             last = MAX;
                         }
 
-                        int[] pageArray = pdfToPDPageArray(first, last);
-                        addPDPagesToPdf(pageArray);
+                        addPDPagesToPdf(first, last);
                         setProgress(100 * last / MAX);
                     }
                     outputDoc.save(outputPDF);
@@ -249,8 +242,7 @@ public class PDFBook {
                         last = MAX;
                     }
 
-                    int[] pageArray = pdfToPDPageArray(first, last);
-                    addPDPagesToPdf(pageArray);
+                    addPDPagesToPdf(first, last);
 
                     System.out.printf("Pages %d to %d\n", first + 1, last);
                 }
@@ -273,30 +265,21 @@ public class PDFBook {
     }
 
     /**
-     * Create an array of images of pages from a PDF document.
+     * Add pages to a PDF document.
      *
-     * @param first page to grab from inputDoc (pages start from 0).
-     * @param last stop grabbing pages BEFORE reaching the last page.
-     * @return a BufferedImage array containing the page images.
+     * @param fpn first page number to grab from inputDoc (pages start from 0).
+     * @param lpn last page number for grabbing pages BEFORE reaching the last page.
      */
-    private int[] pdfToPDPageArray(int first, int last) {
+    private void addPDPagesToPdf(int fpn, int lpn) {
 
+        // Create an array of page numbers from a PDF document.
         int i = 0;
-        int[] pageArray = new int[last-first];
-        for (int target = first; target < last; ++target) {
-            pageArray[i++] = target;
+        int[] pages = new int[lpn-fpn];
+        for (int target = fpn; target < lpn; ++target) {
+            pages[i++] = target;
         }
 
-        return pageArray;
-    }
-
-    /**
-     * Add images to a PDF document.
-     *
-     * @param images array to be added to document in booklet arrangement.
-     */
-    private void addPDPagesToPdf(int[] pages) {
-
+        // Add pages in pairs to both side of the sheet.
         final int LAST = 4 * sheetCount;
         int first = 0;
         int last = LAST - 1;
@@ -306,60 +289,95 @@ public class PDFBook {
         }
     }
 
+    private void addPDPagesToPage(int[] pages, int top, int bottom,
+            boolean flip) {
+
+        if (add2PagesToPage(pages, top, bottom, flip)) {
+            try {
+				PDPage imported = outputDoc.importPage(page);
+	        	addPageToPdf(imported, false, flip);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//            outputDoc.addPage(page);
+        }
+
+    }
+
     /**
-     * Add two images to a page of a PDF document.
+     * Add two pages to a page of a PDF document.
      *
-     * @param images array to be added to document in booklet arrangement.
+     * @param pages array to be added to document in booklet arrangement.
      * @param top index for the top image.
      * @param bottom index for the bottom image.
      * @param flip flag to indicate if the images should be flipped clockwise.
      */
-    private void addPDPagesToPage(int[] pages, int top, int bottom,
+    private boolean add2PagesToPage(int[] pages, int top, int bottom,
             boolean flip) {
 
         final int count = pages.length;
+        boolean tpa = false;
+        boolean bpa = false;
         int tpn = 0;
         int bpn = 0;
         if (count > top) {
+            tpa = true;
             tpn = pages[top];
         }
         if (count > bottom) {
+            bpa = true;
             bpn = pages[bottom];
         }
+        if ((tpa == false) && (bpa == false))
+            return false;
 
         try {
-            // Create output PDF frame
+            // Create output PDF frame.
             PDRectangle pdf1Frame = inputDoc.getPage(tpn).getCropBox();
             PDRectangle pdf2Frame = inputDoc.getPage(bpn).getCropBox();
 
-            PDRectangle outPdfFrame = new PDRectangle(pdf1Frame.getWidth() +
-                    pdf2Frame.getWidth(),
+            PDRectangle outPdfFrame = new PDRectangle(
+                    pdf1Frame.getWidth() + pdf2Frame.getWidth(),
                     Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
 
-            // Create output page with calculated frame and add it to the document
+            float tx = (outPdfFrame.getWidth()) / 2;
+            float ty = (outPdfFrame.getHeight()) / 2;
+
+            final int idx = outputDoc.getNumberOfPages();
+
+
+            // Create output page with calculated frame and add it to the document.
             COSDictionary dict = new COSDictionary();
             dict.setItem(COSName.TYPE, COSName.PAGE);
             dict.setItem(COSName.MEDIA_BOX, outPdfFrame);
             dict.setItem(COSName.CROP_BOX, outPdfFrame);
             dict.setItem(COSName.ART_BOX, outPdfFrame);
-            PDPage outPdfPage = new PDPage(dict);
-            outputDoc.addPage(outPdfPage);
-            final int pagesOutput = outputDoc.getNumberOfPages();
+            page = new PDPage(dict);
 
-            // Source PDF pages has to be imported as form XObjects to be able to insert them at a specific point in the output page
+            // Source PDF pages has to be imported as form XObjects to be able
+            // to insert them at a specific point in the output page.
             LayerUtility layerUtility = new LayerUtility(outputDoc);
             PDFormXObject formPdf1 = layerUtility.importPageAsForm(inputDoc, tpn);
             PDFormXObject formPdf2 = layerUtility.importPageAsForm(inputDoc, bpn);
 
-            // Add form objects to output page
-            AffineTransform afLeft = new AffineTransform();
-            layerUtility.appendFormAsLayer(outPdfPage, formPdf1, afLeft, "left" + pagesOutput);
-            AffineTransform afRight = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
-            layerUtility.appendFormAsLayer(outPdfPage, formPdf2, afRight, "right" + pagesOutput);
+            // Add form objects to output page.
+            if (tpa == true) {
+                AffineTransform afLeft = new AffineTransform();
+                layerUtility.appendFormAsLayer(page, formPdf1, afLeft, "left" + idx);
+            }
+            if (bpa == true) {
+                AffineTransform afRight = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
+                layerUtility.appendFormAsLayer(page, formPdf2, afRight, "right" + idx);
+            }
+
+            return true;
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return false;
     }
 
 
@@ -373,7 +391,17 @@ public class PDFBook {
      */
     private void addPageToPdf(PDPage copyPage, boolean top, boolean clockwise) {
 
-        final float base = top ? hHeight : 0f;
+        PDPage outputSize = new PDPage(PS);
+        PDPageContentStream stream; // Current stream of "outputDoc".
+
+//        final PDRectangle rect = outputSize.getMediaBox();
+//        final float width = rect.getWidth();
+//        final float height = rect.getHeight();
+//        final float hHeight = (height / 2);
+
+//        outputDoc.addPage(newPage);
+
+//        final float base = top ? hHeight : 0f;
 
         final double degrees = clockwise ? 270 : 90;
         Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
@@ -386,11 +414,13 @@ public class PDFBook {
         float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
 
         try {
+//            stream = new PDPageContentStream(outputDoc, copyPage);
+        	stream = new PDPageContentStream(outputDoc, copyPage, PDPageContentStream.AppendMode.PREPEND, false, false);
+
             stream.transform(Matrix.getTranslateInstance(tx, ty));
             stream.transform(matrix);
             stream.transform(Matrix.getScaleInstance(scale, scale));
 
-            PDPage outputSize = new PDPage(PS);
             PDRectangle outputPage = outputSize.getCropBox();
 
             tx = (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
@@ -399,14 +429,14 @@ public class PDFBook {
 
             stream.transform(Matrix.getTranslateInstance(-tx, -ty));
 
-            page.setMediaBox(outputSize.getMediaBox());
-            page.setCropBox(outputSize.getCropBox());
+            copyPage.setMediaBox(outputSize.getMediaBox());
+            copyPage.setCropBox(outputSize.getCropBox());
+
+            stream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
-
 
 }
