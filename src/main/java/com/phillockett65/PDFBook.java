@@ -294,12 +294,11 @@ public class PDFBook {
 
         if (add2PagesToPage(pages, top, bottom, flip)) {
             try {
-				PDPage imported = outputDoc.importPage(page);
-	        	addPageToPdf(imported, false, flip);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                PDPage imported = outputDoc.importPage(page);
+                addPageToPdf(imported, false, flip);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 //            outputDoc.addPage(page);
         }
 

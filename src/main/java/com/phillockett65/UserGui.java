@@ -180,6 +180,7 @@ public class UserGui extends javax.swing.JFrame {
         flipReverseSidejLabel.setBounds(40, 90, 110, 17);
 
         flipReverseSidejCheckBox.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        flipReverseSidejCheckBox.setSelected(true);
         getContentPane().add(flipReverseSidejCheckBox);
         flipReverseSidejCheckBox.setBounds(170, 90, 21, 21);
 
