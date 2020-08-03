@@ -337,9 +337,6 @@ public class PDFBook {
                     pdf1Frame.getWidth() + pdf2Frame.getWidth(),
                     Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
 
-            float tx = (outPdfFrame.getWidth()) / 2;
-            float ty = (outPdfFrame.getHeight()) / 2;
-
             final int idx = outputDoc.getNumberOfPages();
 
             // Create output page with calculated frame and add it to the document.
