@@ -50,7 +50,6 @@
  */
 package com.phillockett65;
 
-import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
@@ -285,7 +284,7 @@ public class PDFBook {
         int last = LAST - 1;
         for (int sheet = 0; sheet < sheetCount; ++sheet) {
             addPDPagesToPage(pages, first++, last--, false);
-            addPDPagesToPage(pages, first++, last--, rotate);
+            addPDPagesToPage(pages, last--, first++, rotate);
         }
     }
 
@@ -295,7 +294,7 @@ public class PDFBook {
         if (add2PagesToPage(pages, top, bottom)) {
             try {
                 PDPage imported = outputDoc.importPage(page);
-                addPageToPdf(imported, false, flip);
+                addPageToPdf(imported, flip);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -354,11 +353,11 @@ public class PDFBook {
             PDFormXObject formPdf2 = layerUtility.importPageAsForm(inputDoc, rpn);
 
             // Add form objects to output page.
-            if (lpa == true) {
+            if (lpa) {
                 AffineTransform af = new AffineTransform();
                 layerUtility.appendFormAsLayer(page, formPdf1, af, "left" + idx);
             }
-            if (rpa == true) {
+            if (rpa) {
                 AffineTransform af = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
                 layerUtility.appendFormAsLayer(page, formPdf2, af, "right" + idx);
             }
@@ -372,15 +371,13 @@ public class PDFBook {
         return false;
     }
 
-
     /**
      * Scale and rotate landscape page to fit on portrait PS sized page.
      *
      * @param copyPage to add to document (in landscape orientation).
-     * @param top flag to indicate top or bottom of the page
      * @param flip flag to indicate if the images should be rotated clockwise.
      */
-    private void addPageToPdf(PDPage copyPage, boolean top, boolean flip) {
+    private void addPageToPdf(PDPage copyPage, boolean flip) {
 
         PDPage outputSize = new PDPage(PS);
         PDPageContentStream stream; // Current stream of "outputDoc".
@@ -391,9 +388,9 @@ public class PDFBook {
         PDRectangle cropBox = copyPage.getCropBox();
         float tx = (cropBox.getWidth()) / 2;
         float ty = (cropBox.getHeight()) / 2;
+        PDRectangle outputPage = outputSize.getCropBox();
 
-        Rectangle rectangle = cropBox.transform(matrix).getBounds();
-        float scale = Math.min(cropBox.getWidth() / (float)rectangle.getWidth(), cropBox.getHeight() / (float)rectangle.getHeight());
+        float scale = Math.min(outputPage.getWidth() / (float)cropBox.getHeight(), outputPage.getHeight() / (float)cropBox.getWidth());
 
         try {
             stream = new PDPageContentStream(outputDoc, copyPage, PDPageContentStream.AppendMode.PREPEND, false, false);
@@ -402,11 +399,14 @@ public class PDFBook {
             stream.transform(matrix);
             stream.transform(Matrix.getScaleInstance(scale, scale));
 
-            PDRectangle outputPage = outputSize.getCropBox();
-
-            tx = (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
-            if (!top)
-                tx += (outputPage.getHeight()) / (2 * scale);
+            if (flip) {
+                tx -= (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
+                ty = cropBox.getWidth() / (2 * scale);
+            }
+            else {
+                tx = cropBox.getHeight() / (2 * scale);
+                ty = 0;
+            }
 
             stream.transform(Matrix.getTranslateInstance(-tx, -ty));
 
