@@ -307,31 +307,31 @@ public class PDFBook {
      * Add two pages to a page of a PDF document.
      *
      * @param pages array to be added to document in booklet arrangement.
-     * @param top index for the top image.
-     * @param bottom index for the bottom image.
+     * @param right index for the right page.
+     * @param left index for the left page.
      */
-    private boolean add2PagesToPage(int[] pages, int top, int bottom) {
+    private boolean add2PagesToPage(int[] pages, int right, int left) {
 
         final int count = pages.length;
-        boolean tpa = false;
-        boolean bpa = false;
-        int tpn = 0;
-        int bpn = 0;
-        if (count > top) {
-            tpa = true;
-            tpn = pages[top];
+        boolean lpa = false;
+        boolean rpa = false;
+        int lpn = 0;
+        int rpn = 0;
+        if (count > left) {
+            lpa = true;
+            lpn = pages[left];
         }
-        if (count > bottom) {
-            bpa = true;
-            bpn = pages[bottom];
+        if (count > right) {
+            rpa = true;
+            rpn = pages[right];
         }
-        if ((tpa == false) && (bpa == false))
+        if ((lpa == false) && (rpa == false))
             return false;
 
         try {
             // Create output PDF frame.
-            PDRectangle pdf1Frame = inputDoc.getPage(tpn).getCropBox();
-            PDRectangle pdf2Frame = inputDoc.getPage(bpn).getCropBox();
+            PDRectangle pdf1Frame = inputDoc.getPage(lpn).getCropBox();
+            PDRectangle pdf2Frame = inputDoc.getPage(rpn).getCropBox();
 
             PDRectangle outPdfFrame = new PDRectangle(
                     pdf1Frame.getWidth() + pdf2Frame.getWidth(),
@@ -341,7 +341,6 @@ public class PDFBook {
             float ty = (outPdfFrame.getHeight()) / 2;
 
             final int idx = outputDoc.getNumberOfPages();
-
 
             // Create output page with calculated frame and add it to the document.
             COSDictionary dict = new COSDictionary();
@@ -354,17 +353,17 @@ public class PDFBook {
             // Source PDF pages has to be imported as form XObjects to be able
             // to insert them at a specific point in the output page.
             LayerUtility layerUtility = new LayerUtility(outputDoc);
-            PDFormXObject formPdf1 = layerUtility.importPageAsForm(inputDoc, tpn);
-            PDFormXObject formPdf2 = layerUtility.importPageAsForm(inputDoc, bpn);
+            PDFormXObject formPdf1 = layerUtility.importPageAsForm(inputDoc, lpn);
+            PDFormXObject formPdf2 = layerUtility.importPageAsForm(inputDoc, rpn);
 
             // Add form objects to output page.
-            if (tpa == true) {
-                AffineTransform afLeft = new AffineTransform();
-                layerUtility.appendFormAsLayer(page, formPdf1, afLeft, "left" + idx);
+            if (lpa == true) {
+                AffineTransform af = new AffineTransform();
+                layerUtility.appendFormAsLayer(page, formPdf1, af, "left" + idx);
             }
-            if (bpa == true) {
-                AffineTransform afRight = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
-                layerUtility.appendFormAsLayer(page, formPdf2, afRight, "right" + idx);
+            if (rpa == true) {
+                AffineTransform af = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
+                layerUtility.appendFormAsLayer(page, formPdf2, af, "right" + idx);
             }
 
             return true;
@@ -378,10 +377,9 @@ public class PDFBook {
 
 
     /**
-     * Add a buffered image to the top or bottom of a page in a PDF document.
-     * The image is scaled to fit and centered.
+     * Scale and rotate landscape page to fit on portrait PS sized page.
      *
-     * @param copyPage to add to document.
+     * @param copyPage to add to document (in landscape orientation).
      * @param top flag to indicate top or bottom of the page
      * @param flip flag to indicate if the images should be rotated clockwise.
      */
