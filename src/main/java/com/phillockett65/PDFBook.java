@@ -292,14 +292,13 @@ public class PDFBook {
     private void addPDPagesToPage(int[] pages, int top, int bottom,
             boolean flip) {
 
-        if (add2PagesToPage(pages, top, bottom, flip)) {
+        if (add2PagesToPage(pages, top, bottom)) {
             try {
                 PDPage imported = outputDoc.importPage(page);
                 addPageToPdf(imported, false, flip);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//            outputDoc.addPage(page);
         }
 
     }
@@ -310,10 +309,8 @@ public class PDFBook {
      * @param pages array to be added to document in booklet arrangement.
      * @param top index for the top image.
      * @param bottom index for the bottom image.
-     * @param flip flag to indicate if the images should be flipped clockwise.
      */
-    private boolean add2PagesToPage(int[] pages, int top, int bottom,
-            boolean flip) {
+    private boolean add2PagesToPage(int[] pages, int top, int bottom) {
 
         final int count = pages.length;
         boolean tpa = false;
@@ -386,14 +383,14 @@ public class PDFBook {
      *
      * @param copyPage to add to document.
      * @param top flag to indicate top or bottom of the page
-     * @throws IOException
+     * @param flip flag to indicate if the images should be rotated clockwise.
      */
-    private void addPageToPdf(PDPage copyPage, boolean top, boolean clockwise) {
+    private void addPageToPdf(PDPage copyPage, boolean top, boolean flip) {
 
         PDPage outputSize = new PDPage(PS);
         PDPageContentStream stream; // Current stream of "outputDoc".
 
-        final double degrees = clockwise ? 270 : 90;
+        final double degrees = flip ? 270 : 90;
         Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
 
         PDRectangle cropBox = copyPage.getCropBox();
