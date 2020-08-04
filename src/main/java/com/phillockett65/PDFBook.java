@@ -71,7 +71,7 @@ import org.apache.pdfbox.util.Matrix;
  */
 public class PDFBook {
 
-    private PDRectangle PS = PDRectangle.LETTER;
+    private PDRectangle pageSize = PDRectangle.LETTER;
     private int sheetCount = 1;
     private int firstPage = 0;
     private int lastPage = 0;
@@ -79,7 +79,7 @@ public class PDFBook {
 
     private final String sourcePDF;     // The source PDF filepath.
     private final String outputPDF;     // The generated PDF filepath.
-    private int MAX = 0;
+    private int maxPage = 0;
 
     private PDDocument inputDoc;        // The source PDF document.
     private PDDocument outputDoc;       // The generated PDF document.
@@ -99,8 +99,8 @@ public class PDFBook {
 
         try {
             inputDoc = PDDocument.load(new File(sourcePDF));
-            MAX = inputDoc.getNumberOfPages();
-            lastPage = MAX;
+            maxPage = inputDoc.getNumberOfPages();
+            lastPage = maxPage;
 
             if (inputDoc != null) {
                 inputDoc.close();
@@ -130,7 +130,7 @@ public class PDFBook {
      * PDFBook attribute setters.
      */
     public void setPageSize(PDRectangle size) {
-        PS = size;
+        pageSize = size;
     }
 
     public void setSheetCount(int count) {
@@ -144,8 +144,8 @@ public class PDFBook {
             return;
         }
 
-        if (page > MAX)
-            page = MAX;
+        if (page > maxPage)
+            page = maxPage;
 
         if (page > lastPage)
             lastPage = page;
@@ -154,8 +154,8 @@ public class PDFBook {
     }
 
     public void setLastPage(int page) {
-        if (page > MAX) {
-            lastPage = MAX;
+        if (page > maxPage) {
+            lastPage = maxPage;
 
             return;
         }
@@ -175,6 +175,10 @@ public class PDFBook {
 
     public int getLastPage() {
         return lastPage;
+    }
+
+    public int getMaxPage() {
+        return maxPage;
     }
 
     public void setRotate(boolean flip) {
@@ -267,7 +271,7 @@ public class PDFBook {
      * Add pages to a PDF document.
      *
      * @param fpn first page number to grab from inputDoc (pages start from 0).
-     * @param lpn last page number for grabbing pages BEFORE reaching the last page.
+     * @param lpn page number for grabbing pages BEFORE reaching the last page.
      */
     private void addPDPagesToPdf(int fpn, int lpn) {
 
@@ -296,7 +300,6 @@ public class PDFBook {
                 PDPage imported = outputDoc.importPage(page);
                 addPageToPdf(imported, flip);
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
 
@@ -338,7 +341,7 @@ public class PDFBook {
 
             final int idx = outputDoc.getNumberOfPages();
 
-            // Create output page with calculated frame and add it to the document.
+            // Create page with calculated frame and add it to the document.
             COSDictionary dict = new COSDictionary();
             dict.setItem(COSName.TYPE, COSName.PAGE);
             dict.setItem(COSName.MEDIA_BOX, outPdfFrame);
@@ -365,21 +368,20 @@ public class PDFBook {
             return true;
 
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return false;
     }
 
     /**
-     * Scale and rotate landscape page to fit on portrait PS sized page.
+     * Scale and rotate landscape page to fit on portrait pageSize sized page.
      *
      * @param copyPage to add to document (in landscape orientation).
      * @param flip flag to indicate if the images should be rotated clockwise.
      */
     private void addPageToPdf(PDPage copyPage, boolean flip) {
 
-        PDPage outputSize = new PDPage(PS);
+        PDPage outputSize = new PDPage(pageSize);
         PDPageContentStream stream; // Current stream of "outputDoc".
 
         final double degrees = flip ? 270 : 90;
@@ -415,7 +417,6 @@ public class PDFBook {
 
             stream.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
     }
