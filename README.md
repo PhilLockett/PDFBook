@@ -1,6 +1,5 @@
 # PDFBook
 
-Work in progress.
 A simple application to generate a booklet from of a PDF. A booklet has two 
 pages arranged side-by-side on both side of a sheet of paper such that the 
 sheet can be folded to produce a booklet.
@@ -17,12 +16,13 @@ an IDE.
 
 PDFBook is a simple application to generate a booklet from of a source 
 PDF document. The command line version only uses PDFBook.java and requires 
-2 command line parameters, the source PDF and the name of the new PDF. Example 
-usage:
+2 command line parameters, the source PDF and the name of the new PDF. Change 
+the "mainClass" in pom.xml from "com.phillockett65.UserGui" to 
+"com.phillockett65.PDFBook" then build using maven.
 
-    java -jar path-to-jar/PDFBook.jar path-to-source.pdf path-to-new.pdf
+Example usage:
 
-The executable PDFBook.jar must contain pdfbox-app-2.x.x.jar.
+    java -jar ./target/PDFBook-jar-with-dependencies.jar source.pdf new.pdf
 
 ## GUI Usage
 
