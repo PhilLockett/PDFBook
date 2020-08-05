@@ -49,6 +49,7 @@ public class UserGui extends javax.swing.JFrame {
      */
     private static final long serialVersionUID = 1L;
     private PDFBook booklet;
+    private int maxPage = 0;
     private String baseDirectory;
     private String sourcePDF;     // The source PDF filepath.
     private String outputPDF;     // The generated PDF filepath.
@@ -127,6 +128,11 @@ public class UserGui extends javax.swing.JFrame {
         sectionSizejComboBox = new javax.swing.JComboBox<>();
         pagesjLabel = new javax.swing.JLabel();
         generatejProgressBar = new javax.swing.JProgressBar();
+        firstPagejLabel = new javax.swing.JLabel();
+        firstPagejSpinner = new javax.swing.JSpinner();
+        lastPagejLabel = new javax.swing.JLabel();
+        lastPagejSpinner = new javax.swing.JSpinner();
+        pageCountjLabel = new javax.swing.JLabel();
         outputjLabel = new javax.swing.JLabel();
         backgroundjLabel = new javax.swing.JLabel();
 
@@ -175,7 +181,7 @@ public class UserGui extends javax.swing.JFrame {
         flipReverseSidejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         flipReverseSidejLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         flipReverseSidejLabel.setText("Flip Reverse Side:");
-        flipReverseSidejLabel.setToolTipText("Resolution of the page images.");
+        flipReverseSidejLabel.setToolTipText("Rotate reverse side of sheet.");
         getContentPane().add(flipReverseSidejLabel);
         flipReverseSidejLabel.setBounds(40, 90, 110, 17);
 
@@ -206,13 +212,13 @@ public class UserGui extends javax.swing.JFrame {
             }
         });
         getContentPane().add(generatejButton);
-        generatejButton.setBounds(520, 140, 103, 31);
+        generatejButton.setBounds(520, 160, 103, 31);
 
         sectionSizejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         sectionSizejLabel.setText("Section Size:");
         sectionSizejLabel.setToolTipText("Number of sheets of paper per section.");
         getContentPane().add(sectionSizejLabel);
-        sectionSizejLabel.setBounds(70, 130, 78, 17);
+        sectionSizejLabel.setBounds(70, 160, 78, 17);
 
         sectionSizejComboBox.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         sectionSizejComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1 sheet", "2 sheets", "3 sheets", "4 sheets", "5 sheets", "6 sheets" }));
@@ -222,21 +228,58 @@ public class UserGui extends javax.swing.JFrame {
             }
         });
         getContentPane().add(sectionSizejComboBox);
-        sectionSizejComboBox.setBounds(170, 130, 88, 23);
+        sectionSizejComboBox.setBounds(170, 160, 88, 23);
 
         pagesjLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         pagesjLabel.setText("(4 pages)");
         getContentPane().add(pagesjLabel);
-        pagesjLabel.setBounds(280, 130, 84, 17);
+        pagesjLabel.setBounds(280, 160, 110, 17);
 
         generatejProgressBar.setOpaque(true);
         generatejProgressBar.setStringPainted(true);
         getContentPane().add(generatejProgressBar);
         generatejProgressBar.setBounds(350, 90, 280, 20);
 
+        firstPagejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        firstPagejLabel.setText("First Page:");
+        firstPagejLabel.setToolTipText("First page to add to the booklet.");
+        getContentPane().add(firstPagejLabel);
+        firstPagejLabel.setBounds(80, 120, 70, 17);
+
+        firstPagejSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 1, 1));
+        firstPagejSpinner.setEnabled(false);
+        firstPagejSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                firstPagejSpinnerStateChanged(evt);
+            }
+        });
+        getContentPane().add(firstPagejSpinner);
+        firstPagejSpinner.setBounds(170, 120, 60, 30);
+
+        lastPagejLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        lastPagejLabel.setText("Last Page:");
+        lastPagejLabel.setToolTipText("Last page to add to the booklet.");
+        getContentPane().add(lastPagejLabel);
+        lastPagejLabel.setBounds(270, 120, 70, 17);
+
+        lastPagejSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 1, 1));
+        lastPagejSpinner.setEnabled(false);
+        lastPagejSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                lastPagejSpinnerStateChanged(evt);
+            }
+        });
+        getContentPane().add(lastPagejSpinner);
+        lastPagejSpinner.setBounds(360, 120, 60, 30);
+
+        pageCountjLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        pageCountjLabel.setToolTipText("");
+        getContentPane().add(pageCountjLabel);
+        pageCountjLabel.setBounds(460, 130, 170, 17);
+
         outputjLabel.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         getContentPane().add(outputjLabel);
-        outputjLabel.setBounds(70, 210, 550, 10);
+        outputjLabel.setBounds(70, 220, 550, 20);
 
         backgroundjLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         backgroundjLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/phillockett65/background.jpg"))); // NOI18N
@@ -263,6 +306,11 @@ public class UserGui extends javax.swing.JFrame {
         booklet.setPageSize(getPS());
         booklet.setRotate(getFlipReverseSide());
         booklet.setSheetCount(getSheetCount());
+
+        final int first = (Integer)firstPagejSpinner.getValue();
+        final int last = (Integer)lastPagejSpinner.getValue();
+        booklet.setFirstPage(first-1);
+        booklet.setLastPage(last);
 
         generatejButton.setEnabled(false);
         outputjLabel.setText("");
@@ -298,6 +346,28 @@ public class UserGui extends javax.swing.JFrame {
 
     }//GEN-LAST:event_generatejButtonActionPerformed
 
+    private void updatePageCountjLabel() {
+        Integer count = (Integer)lastPagejSpinner.getValue();
+        count -= (Integer)firstPagejSpinner.getValue();
+        count += 1;
+        pageCountjLabel.setText("(" + count.toString() + " total pages)");
+    }
+
+    /**
+     * Find the maximum page number of the selected source PDF document.
+     */
+    private void setMaxPage() {
+        PDFBook temp = new PDFBook(sourcePDF, outputPDF);
+        maxPage = temp.getMaxPage();
+        if (maxPage > 0) {
+            firstPagejSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, maxPage, 1));
+            firstPagejSpinner.setEnabled(true);
+            lastPagejSpinner.setModel(new javax.swing.SpinnerNumberModel(maxPage, 1, maxPage, 1));
+            lastPagejSpinner.setEnabled(true);
+            updatePageCountjLabel();
+        }
+    }
+
     /**
      * Select a source PDF file using a JFileChooser.
      *
@@ -322,6 +392,7 @@ public class UserGui extends javax.swing.JFrame {
             if (source.isFile()) {
                 sourcePDF = source.getPath();
                 sourcePDFjTextField.setText(sourcePDF);
+                setMaxPage();
 
                 return true;
             }
@@ -352,6 +423,20 @@ public class UserGui extends javax.swing.JFrame {
         final int pages = getSheetCount() * 4;
         pagesjLabel.setText("(" + pages + " pages)");
     }//GEN-LAST:event_sectionSizejComboBoxActionPerformed
+
+    private void firstPagejSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_firstPagejSpinnerStateChanged
+        final int min = (Integer)firstPagejSpinner.getValue();
+        final int current = (Integer)lastPagejSpinner.getValue();
+        lastPagejSpinner.setModel(new javax.swing.SpinnerNumberModel(current, min, maxPage, 1));
+        updatePageCountjLabel();
+    }//GEN-LAST:event_firstPagejSpinnerStateChanged
+
+    private void lastPagejSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lastPagejSpinnerStateChanged
+        final int max = (Integer)lastPagejSpinner.getValue();
+        final int current = (Integer)firstPagejSpinner.getValue();
+        firstPagejSpinner.setModel(new javax.swing.SpinnerNumberModel(current, 1, max, 1));
+        updatePageCountjLabel();
+    }//GEN-LAST:event_lastPagejSpinnerStateChanged
 
     /**
      * @param args the command line arguments
@@ -391,13 +476,18 @@ public class UserGui extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel backgroundjLabel;
     private javax.swing.JButton browsejButton;
+    private javax.swing.JLabel firstPagejLabel;
+    private javax.swing.JSpinner firstPagejSpinner;
     private javax.swing.JCheckBox flipReverseSidejCheckBox;
     private javax.swing.JLabel flipReverseSidejLabel;
     private javax.swing.JButton generatejButton;
     private javax.swing.JProgressBar generatejProgressBar;
+    private javax.swing.JLabel lastPagejLabel;
+    private javax.swing.JSpinner lastPagejSpinner;
     private javax.swing.JLabel outputPDFjLabel;
     private javax.swing.JTextField outputPDFjTextField;
     private javax.swing.JLabel outputjLabel;
+    private javax.swing.JLabel pageCountjLabel;
     private javax.swing.JComboBox<String> pageSizejComboBox;
     private javax.swing.JLabel pageSizejLabel;
     private javax.swing.JLabel pagesjLabel;
