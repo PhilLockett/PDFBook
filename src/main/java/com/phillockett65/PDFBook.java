@@ -137,6 +137,10 @@ public class PDFBook {
         sheetCount = count;
     }
 
+    /**
+     * Select the first page to be added to the booklet.
+     * @param page number of first page starting from 0.
+     */
     public void setFirstPage(int page) {
         if (page < 0) {
             firstPage = 0;
@@ -153,6 +157,10 @@ public class PDFBook {
         firstPage = page;
     }
 
+    /**
+     * Select the last page to be added to the booklet.
+     * @param page number of last page not to be exceeded.
+     */
     public void setLastPage(int page) {
         if (page > maxPage) {
             lastPage = maxPage;
