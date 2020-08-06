@@ -208,14 +208,16 @@ public class PDFBook {
                 try {
                     outputDoc = new PDDocument();
                     final int MAX = lastPage;
-                    for (int first = firstPage; first < MAX; first += 4 * sheetCount) {
-                        int last = first + 4 * sheetCount;
+                    final int COUNT = lastPage - firstPage;
+                    int last = firstPage;
+                    for (int first = last; first < MAX; first = last) {
+                        last += 4 * sheetCount;
                         if (last > MAX) {
                             last = MAX;
                         }
 
                         addPDPagesToPdf(first, last);
-                        setProgress(100 * last / MAX);
+                        setProgress(100 * (last - firstPage) / COUNT);
                     }
                     outputDoc.save(outputPDF);
                     if (outputDoc != null) {
@@ -247,8 +249,9 @@ public class PDFBook {
             try {
                 outputDoc = new PDDocument();
                 final int MAX = lastPage;
-                for (int first = firstPage; first < MAX; first += 4 * sheetCount) {
-                    int last = first + 4 * sheetCount;
+                int last = firstPage;
+                for (int first = last; first < MAX; first = last) {
+                    last += 4 * sheetCount;
                     if (last > MAX) {
                         last = MAX;
                     }
