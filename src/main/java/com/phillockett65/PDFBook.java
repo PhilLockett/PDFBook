@@ -126,19 +126,28 @@ public class PDFBook {
         }
     }
 
-    /*
-     * PDFBook attribute setters.
+
+    /**
+     * Set the size of the page in the output document.
+     * 
+     * @param size of standard portrait page defined by PDRectangle.
      */
     public void setPageSize(PDRectangle size) {
         pageSize = size;
     }
 
+    /**
+     * Set to number of sheets to be used in a section (4 pages to a sheet).
+     * 
+     * @param count of sheets in a section (1 to 6).
+     */
     public void setSheetCount(int count) {
         sheetCount = count;
     }
 
     /**
-     * Select the first page to be added to the booklet.
+     * Select the first page to be added to the booklet (0 to maxPage).
+     * 
      * @param page number of first page starting from 0.
      */
     public void setFirstPage(int page) {
@@ -158,7 +167,9 @@ public class PDFBook {
     }
 
     /**
-     * Select the last page to be added to the booklet.
+     * Select the page after the last page to be added to the booklet (0 to 
+     * maxPage).
+     * 
      * @param page number of last page not to be exceeded.
      */
     public void setLastPage(int page) {
@@ -177,18 +188,39 @@ public class PDFBook {
         lastPage = page;
     }
 
+    /**
+     * Get the current first page number (0 to maxPage).
+     * 
+     * @return the current first page number. 
+     */
     public int getFirstPage() {
         return firstPage;
     }
 
+    /**
+     * Get the current last page number (0 to maxPage).
+     * 
+     * @return the current last page number. 
+     */
     public int getLastPage() {
         return lastPage;
     }
 
+    /**
+     * Get the number of pages in the source PDF document.
+     * 
+     * @return number of pages in the PDF.
+     */
     public int getMaxPage() {
         return maxPage;
     }
 
+    /**
+     * Indicate whether the pages on the reverse side should be rotated in the 
+     * opposite direction to the front side of the sheet.
+     * 
+     * @param flip true if the reverse side should be rotated, false otherwise.
+     */
     public void setRotate(boolean flip) {
         rotate = flip;
     }
@@ -240,7 +272,7 @@ public class PDFBook {
     }
 
     /**
-     * Generate a booklet style PDF using a crude images of pages technique.
+     * Generate a booklet style PDF.
      */
     public void genBooklet() {
         try {
@@ -279,7 +311,7 @@ public class PDFBook {
     }
 
     /**
-     * Add pages to a PDF document.
+     * Add a section of pages to the PDF document.
      *
      * @param fpn first page number to grab from inputDoc (pages start from 0).
      * @param lpn page number for grabbing pages BEFORE reaching the last page.
@@ -303,10 +335,18 @@ public class PDFBook {
         }
     }
 
-    private void addPDPagesToPage(int[] pages, int top, int bottom,
+    /**
+     * Add two pages, scale and rotate to fit on portrait 'pageSize' page.
+     *
+     * @param pages array to be added to document in booklet arrangement.
+     * @param right index into pages for the right page.
+     * @param left index into pages for the left page.
+     * @param flip flag to indicate if the images should be rotated clockwise.
+     */
+    private void addPDPagesToPage(int[] pages, int right, int left,
             boolean flip) {
 
-        if (add2PagesToPage(pages, top, bottom)) {
+        if (add2PagesToPage(pages, right, left)) {
             try {
                 PDPage imported = outputDoc.importPage(page);
                 addPageToPdf(imported, flip);
@@ -317,11 +357,11 @@ public class PDFBook {
     }
 
     /**
-     * Add two pages to a page of a PDF document.
+     * Add two pages, side by side, to a single page of a PDF document.
      *
      * @param pages array to be added to document in booklet arrangement.
-     * @param right index for the right page.
-     * @param left index for the left page.
+     * @param right index into pages for the right page.
+     * @param left index into pages for the left page.
      */
     private boolean add2PagesToPage(int[] pages, int right, int left) {
 
@@ -385,7 +425,7 @@ public class PDFBook {
     }
 
     /**
-     * Scale and rotate landscape page to fit on portrait pageSize sized page.
+     * Scale and rotate landscape page to fit on portrait 'pageSize' page.
      *
      * @param copyPage to add to document (in landscape orientation).
      * @param flip flag to indicate if the images should be rotated clockwise.
