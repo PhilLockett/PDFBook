@@ -386,9 +386,24 @@ public class PDFBook {
             PDRectangle lFrame = inputDoc.getPage(lpn).getCropBox();
             PDRectangle rFrame = inputDoc.getPage(rpn).getCropBox();
 
-            PDRectangle outPdfFrame = new PDRectangle(
-                    lFrame.getWidth() + rFrame.getWidth(),
-                    Math.max(lFrame.getHeight(), rFrame.getHeight()));
+            final float lw = lFrame.getWidth();
+            final float lh = lFrame.getHeight();
+            final float rw = rFrame.getWidth();
+            final float rh = rFrame.getHeight();
+
+            // Vertically centre the shorter of the two pages.
+            float h = lh;
+            float lty = 0.0f;
+            float rty = 0.0f;
+
+            if (rh > lh) {
+                h = rh;
+                lty = (rh - lh) / 2;
+            }
+            else {
+                rty = (lh - rh) / 2;
+            }
+            PDRectangle outPdfFrame = new PDRectangle(lw + rw, h);
 
             final int idx = outputDoc.getNumberOfPages();
 
@@ -408,12 +423,13 @@ public class PDFBook {
 
             // Add form objects to output page.
             if (lpa) {
-                AffineTransform af = new AffineTransform();
+                AffineTransform af = AffineTransform.getTranslateInstance(
+                        0.0, lty);
                 layer.appendFormAsLayer(page, lForm, af, "left" + idx);
             }
             if (rpa) {
                 AffineTransform af = AffineTransform.getTranslateInstance(
-                        lFrame.getWidth(), 0.0);
+                        lw, rty);
                 layer.appendFormAsLayer(page, rForm, af, "right" + idx);
             }
 
