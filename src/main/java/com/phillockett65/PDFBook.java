@@ -402,18 +402,19 @@ public class PDFBook {
 
             // Source PDF pages has to be imported as form XObjects to be able
             // to insert them at a specific point in the output page.
-            LayerUtility layerUtility = new LayerUtility(outputDoc);
-            PDFormXObject formPdf1 = layerUtility.importPageAsForm(inputDoc, lpn);
-            PDFormXObject formPdf2 = layerUtility.importPageAsForm(inputDoc, rpn);
+            LayerUtility layer = new LayerUtility(outputDoc);
+            PDFormXObject formPdf1 = layer.importPageAsForm(inputDoc, lpn);
+            PDFormXObject formPdf2 = layer.importPageAsForm(inputDoc, rpn);
 
             // Add form objects to output page.
             if (lpa) {
                 AffineTransform af = new AffineTransform();
-                layerUtility.appendFormAsLayer(page, formPdf1, af, "left" + idx);
+                layer.appendFormAsLayer(page, formPdf1, af, "left" + idx);
             }
             if (rpa) {
-                AffineTransform af = AffineTransform.getTranslateInstance(pdf1Frame.getWidth(), 0.0);
-                layerUtility.appendFormAsLayer(page, formPdf2, af, "right" + idx);
+                AffineTransform af = AffineTransform.getTranslateInstance(
+                        pdf1Frame.getWidth(), 0.0);
+                layer.appendFormAsLayer(page, formPdf2, af, "right" + idx);
             }
 
             return true;
@@ -433,6 +434,7 @@ public class PDFBook {
     private void addPageToPdf(PDPage copyPage, boolean flip) {
 
         PDPage outputSize = new PDPage(pageSize);
+        PDRectangle outputPage = outputSize.getCropBox();
         PDPageContentStream stream; // Current stream of "outputDoc".
 
         final double degrees = flip ? 270 : 90;
@@ -441,23 +443,24 @@ public class PDFBook {
         PDRectangle cropBox = copyPage.getCropBox();
         float tx = (cropBox.getWidth()) / 2;
         float ty = (cropBox.getHeight()) / 2;
-        PDRectangle outputPage = outputSize.getCropBox();
 
-        float scale = Math.min(outputPage.getWidth() / (float)cropBox.getHeight(), outputPage.getHeight() / (float)cropBox.getWidth());
+        float scale = Math.min(outputPage.getWidth() / (float)cropBox.getHeight(),
+                outputPage.getHeight() / (float)cropBox.getWidth());
 
         try {
-            stream = new PDPageContentStream(outputDoc, copyPage, PDPageContentStream.AppendMode.PREPEND, false, false);
+            stream = new PDPageContentStream(outputDoc, copyPage,
+                    PDPageContentStream.AppendMode.PREPEND, false, false);
 
             stream.transform(Matrix.getTranslateInstance(tx, ty));
             stream.transform(matrix);
             stream.transform(Matrix.getScaleInstance(scale, scale));
 
             if (flip) {
+                ty = tx / scale;
                 tx -= (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
-                ty = cropBox.getWidth() / (2 * scale);
             }
             else {
-                tx = cropBox.getHeight() / (2 * scale);
+                tx = ty / scale;
                 ty = 0;
             }
 
