@@ -442,7 +442,7 @@ public class PDFBook {
     }
 
     /**
-     * Scale and rotate landscape page to fit on portrait 'pageSize' page.
+     * Scale and rotate a landscape page to fit on portrait 'pageSize' page.
      *
      * @param copyPage to add to document (in landscape orientation).
      * @param flip flag to indicate if the images should be rotated clockwise.
@@ -453,15 +453,19 @@ public class PDFBook {
         PDRectangle outputPage = outputSize.getCropBox();
         PDPageContentStream stream; // Current stream of "outputDoc".
 
-        final double degrees = flip ? 270 : 90;
-        Matrix matrix = Matrix.getRotateInstance(Math.toRadians(degrees), 0, 0);
+        final double degrees = Math.toRadians(flip ? 270 : 90);
+        Matrix matrix = Matrix.getRotateInstance(degrees, 0, 0);
 
         PDRectangle cropBox = copyPage.getCropBox();
-        float tx = (cropBox.getWidth()) / 2;
-        float ty = (cropBox.getHeight()) / 2;
+        final float iw = cropBox.getWidth();
+        final float ih = cropBox.getHeight();
+        final float ow = outputPage.getWidth();
+        final float oh = outputPage.getHeight();
 
-        float scale = Math.min(outputPage.getWidth() / (float)cropBox.getHeight(),
-                outputPage.getHeight() / (float)cropBox.getWidth());
+        float tx = iw / 2;
+        float ty = ih / 2;
+
+        float scale = Math.min(ow / ih, oh / iw);
 
         try {
             stream = new PDPageContentStream(outputDoc, copyPage,
@@ -473,7 +477,7 @@ public class PDFBook {
 
             if (flip) {
                 ty = tx / scale;
-                tx -= (cropBox.getHeight() - outputPage.getHeight()) / (2 * scale);
+                tx -= (ih - oh) / (2 * scale);
             }
             else {
                 tx = ty / scale;
