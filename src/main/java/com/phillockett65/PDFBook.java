@@ -383,12 +383,12 @@ public class PDFBook {
 
         try {
             // Create output PDF frame.
-            PDRectangle pdf1Frame = inputDoc.getPage(lpn).getCropBox();
-            PDRectangle pdf2Frame = inputDoc.getPage(rpn).getCropBox();
+            PDRectangle lFrame = inputDoc.getPage(lpn).getCropBox();
+            PDRectangle rFrame = inputDoc.getPage(rpn).getCropBox();
 
             PDRectangle outPdfFrame = new PDRectangle(
-                    pdf1Frame.getWidth() + pdf2Frame.getWidth(),
-                    Math.max(pdf1Frame.getHeight(), pdf2Frame.getHeight()));
+                    lFrame.getWidth() + rFrame.getWidth(),
+                    Math.max(lFrame.getHeight(), rFrame.getHeight()));
 
             final int idx = outputDoc.getNumberOfPages();
 
@@ -403,18 +403,18 @@ public class PDFBook {
             // Source PDF pages has to be imported as form XObjects to be able
             // to insert them at a specific point in the output page.
             LayerUtility layer = new LayerUtility(outputDoc);
-            PDFormXObject formPdf1 = layer.importPageAsForm(inputDoc, lpn);
-            PDFormXObject formPdf2 = layer.importPageAsForm(inputDoc, rpn);
+            PDFormXObject lForm = layer.importPageAsForm(inputDoc, lpn);
+            PDFormXObject rForm = layer.importPageAsForm(inputDoc, rpn);
 
             // Add form objects to output page.
             if (lpa) {
                 AffineTransform af = new AffineTransform();
-                layer.appendFormAsLayer(page, formPdf1, af, "left" + idx);
+                layer.appendFormAsLayer(page, lForm, af, "left" + idx);
             }
             if (rpa) {
                 AffineTransform af = AffineTransform.getTranslateInstance(
-                        pdf1Frame.getWidth(), 0.0);
-                layer.appendFormAsLayer(page, formPdf2, af, "right" + idx);
+                        lFrame.getWidth(), 0.0);
+                layer.appendFormAsLayer(page, rForm, af, "right" + idx);
             }
 
             return true;
