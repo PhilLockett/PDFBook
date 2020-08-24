@@ -465,7 +465,22 @@ public class PDFBook {
         float tx = iw / 2;
         float ty = ih / 2;
 
-        float scale = Math.min(ow / ih, oh / iw);
+        final float sw = ow / ih;
+        final float sh = oh / iw;
+
+        float scale;
+        float dx = 0.0f;
+        float dy = 0.0f;
+        if (sw < sh) {
+            scale = sw;
+            // Centre the pages on the output sheet.
+            dx = (oh - (iw * scale)) / (2 * scale);
+        }
+        else {
+            scale = sh;
+            // Centre the pages on the output sheet.
+            dy = (ow - (ih * scale)) / (2 * scale);
+        }
 
         try {
             stream = new PDPageContentStream(outputDoc, copyPage,
@@ -478,10 +493,13 @@ public class PDFBook {
             if (flip) {
                 ty = tx / scale;
                 tx -= (ih - oh) / (2 * scale);
+                ty -= dy;
             }
             else {
                 tx = ty / scale;
-                ty = 0;
+                ty = ((iw / 2) - ow) / scale;
+                tx -= dx;
+                ty -= dy;
             }
 
             stream.transform(Matrix.getTranslateInstance(-tx, -ty));
