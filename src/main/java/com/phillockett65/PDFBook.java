@@ -111,6 +111,21 @@ public class PDFBook {
         }
     }
 
+    private static PDRectangle getPS(String size) {
+        switch (size) {
+            case "A0":      return PDRectangle.A0;
+            case "A1":      return PDRectangle.A1;
+            case "A2":      return PDRectangle.A2;
+            case "A3":      return PDRectangle.A3;
+            case "A4":      return PDRectangle.A4;
+            case "A5":      return PDRectangle.A5;
+            case "A6":      return PDRectangle.A6;
+            case "Legal":   return PDRectangle.LEGAL;
+            case "Letter":  return PDRectangle.LETTER;
+        }
+
+        return PDRectangle.LETTER;
+    }
     /**
      * System entry point for stand alone, command line version.
      *
@@ -119,8 +134,9 @@ public class PDFBook {
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
             PDFBook booklet = new PDFBook(args[0], args[1]);
-            booklet.setPageSize(PDRectangle.LETTER);
-            booklet.setRotate(true);
+            if (args.length > 2) {
+                booklet.setPageSize(getPS(args[2]));
+            }
 
             booklet.genBooklet();
         }
