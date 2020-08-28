@@ -478,9 +478,6 @@ public class PDFBook {
         final float ow = outputPage.getWidth();
         final float oh = outputPage.getHeight();
 
-        float tx = iw / 2;
-        float ty = ih / 2;
-
         final float sw = ow / ih;
         final float sh = oh / iw;
 
@@ -498,6 +495,9 @@ public class PDFBook {
             dy = (ow - (ih * scale)) / (2 * scale);
         }
 
+        float tx = iw / 2;
+        float ty = ih / 2;
+
         try {
             stream = new PDPageContentStream(outputDoc, copyPage,
                     PDPageContentStream.AppendMode.PREPEND, false, false);
@@ -513,9 +513,8 @@ public class PDFBook {
             }
             else {
                 tx = ty / scale;
-                ty = ((iw / 2) - ow) / scale;
+                ty -= (iw - ow) / (2 * scale);
                 tx -= dx;
-                ty -= dy;
             }
 
             stream.transform(Matrix.getTranslateInstance(-tx, -ty));
